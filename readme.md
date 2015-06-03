@@ -1,5 +1,5 @@
-Specifcation Interface for Multi-Agents Tactical Operations
-===========================================================
+Specification Interface for Multi-Agents Tactical Operations
+============================================================
 
 Installation
 ------------
