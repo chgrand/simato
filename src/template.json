@@ -1,0 +1,159 @@
+//=============================================================================	
+//mission.json
+{
+    "max_time" : //
+    
+    "home_dir" : 
+
+    "map_data" : {
+	"image_file"  : "",
+	"region_file" : "",
+	"dtm_file"    : "ressources/caylus_dtm.tif",
+	"blender_file": "ressources/caylus.blend",
+	"map_size": { "x_min":, "x_max": , "y_min":, "y_max":},
+	"utm_origine" : {"x":, "y": },
+	"utm_zone"    : "31T"
+    }
+
+    "mission_zone" : { "x_min":, "x_max": , "y_min":, "y_max"},
+    "operation_center": {
+	"position": {"x":, "y":, "z":},
+	"comm_range":
+    }
+
+    
+    "agents" : {
+	"$AGENT_NAME" : {
+	    "color" : , // couleur affichage ihm
+	    "marker" : , // marque pour affichage WP ou pos = {'X','+','o'}
+	    "position" : {"x":, "y":,"z":, "t":} // position initial
+	    "energy": ,
+	    
+	    "safety_zone": [
+		{"x":, "y":, "z": },
+		// ...
+		{"x":, "y":, "z": } // zone de sécurité = polygone fermé
+	    ],
+	    
+	    "model" : , // nom du model in models
+	    "wp_group":  "$GROUP_NAME" // nom de la liste de WPs
+	    //"comm_points" : [10, 25, ... ] 
+	    // index des points de comm. autorisés parmi WPs
+	    
+	    "authorized_comm" : [...]//index_list
+	    
+	}
+    }, 
+    
+    "models" : {
+	"$MODEL_NAME" : {
+	    "config_file" : "nom.json"
+	    }
+    }
+
+    "wp_groups" : {
+	"$GROUP_NAME" : {
+	    "color":,
+	    "marker":,
+	    "waypoints" : [
+		{"index:", "x:", "y:", "z:"},
+		//...
+		{"index:", "x:", "y:", "z:"}
+	    ], 
+	    "patrols" : {  // liste des patrouilles
+		"$PATROL_NAME": [1, 3, 4, ...], // list d'index parmi WPs
+		"$PATROL_NAME": [14, 31, 14, ...], // list d'index parmi WPs
+		//...
+	    },
+	    //...
+	}	
+    }
+ 
+    "mission_goal": {
+	"observation_points" : {
+	    "index" : {"x:", "y:", "z:"},
+	    //...
+	    "index" : {"x:", "y:", "z:"}
+	]
+
+	"obervation_strips" : {
+	    "index": { 
+		"pos_1":, {"x:", "y:", "z:"},
+		"pos_2":, {"x:", "y:", "z:"},
+		"velocity":,
+		"measure_type":
+	    }
+	}
+	
+	"communication_goals": [
+	    {
+		"agent1" : , 
+		"agent2" : , 
+		"date" : , // en seconds
+		"wp_1": index,
+		"wp_2": index
+	    }
+	]
+	
+    }
+}
+
+
+
+
+//=============================================================================	
+// agent_model.json
+{
+    "type": , // aerien ou terrestre
+    "mass": ,
+    "radius": ,
+    "velocity" : ,
+    "power": ,
+    "sensor" :
+    {
+	"pose" : {"x":, "y":, "z":, "t":},
+	"range" : ,
+	"fov":	
+    }
+    "antenna" : {
+	"pose" : {"x":, "y":, "z":, "t":},
+	"range" : ,
+	"fov":
+    },
+    "anchors_sensors" : 
+    {
+	"$SENSOR_NAME" : 
+	{
+	 "power" : ,
+	 "bandwidth" :
+	},
+	//...
+    }
+    "morse_file" : 
+}
+
+
+//=============================================================================	
+// plan.json
+{
+    "plan": [	
+	{
+	    "action" : ,//nom de l'action
+	    "agent_1" : ,//nom de l'agent 1
+	    "agent_2" : ,//nom de l'agent 2 //optionnel
+	    "position_1" : ,
+	    "position_2" : ,
+	    "time" : {"start" : , "end":}
+	},
+	{
+	    "action" : ,//nom de l'action
+	    "agent_1" : ,//nom de l'agent 1
+	    "agent_2" : ,//nom de l'agent 2 //optionnel
+	    "position_1" : ,
+	    "position_2" : ,
+	    "time" : {"start" : , "end":}
+	},
+	//...
+    ]
+
+}
