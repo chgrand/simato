@@ -1,13 +1,3 @@
-/*
-#include <QWidget>
-#include <QLabel>
-#include <QVBoxLayout>
-#include <QStatusBar>
-#include <QMainWindow>
-#include <QApplication>
-#include <QResizeEvent>
-*/
-
 #include <QtGui>
 #include <iostream>
 #include "main_window.h"
@@ -20,9 +10,6 @@ MissionData mission_data;
 int main(int argc, char *argv[])
 {
   QApplication app(argc, argv);
-
-  //MapWidget map_view;
-  //AppWindow window;
 
   MainWindow window(&mission_data);
   
@@ -43,12 +30,10 @@ int main(int argc, char *argv[])
     window.loadFile(filename);
   }
 
-  //  if(!map_view.loadPixmap("rover.jpg"))
-  //  return 1;
 
-  window.resize(600,600);
-  //window.move(300, 50);
-  window.setWindowTitle("ISMAC - MapView");
+  window.move(QApplication::desktop()->screen()->rect().center() - window.rect().center());
+  window.resize(800,500);
+  window.setWindowTitle("Simato");
   window.show();
   return app.exec();
 }

@@ -97,7 +97,7 @@ bool MapViewer::updateMapData()
   else
     viewport_factor = h_factor;
   
-  std::cout << "viewport_factor = " << viewport_factor << std::endl;
+  //std::cout << "viewport_factor = " << viewport_factor << std::endl;
   
   setMapSize(mission_model->map_data.x_min,
 	     mission_model->map_data.y_min,
@@ -177,7 +177,7 @@ void MapViewer::setMapSize(float xm, float ym, float xM, float yM)
   // Map meter to pixel scale factor
   map_scale_factor = (float)map_image->width() / (float)map_size_m.width();
 
-  std::cout << "Map_sacle_factor = " << map_scale_factor << std::endl;
+  //std::cout << "Map_sacle_factor = " << map_scale_factor << std::endl;
 }
 
 
@@ -312,19 +312,23 @@ void MapViewer::mousePressEvent(QMouseEvent *event)
     case Delete_Waypoints:
       findPoint(pos_vp_px, action_object);
       mission_model->wp_groups[action_object].waypoints.erase(selected_point_index);
-	    
-	    //now erase all patrol that have this point
-	    {auto& patrols = mission_model->wp_groups[action_object].patrols;
-      for(auto it_p = patrols.begin(); it_p != patrols.end();) {
-        if(std::find(it_p->second.begin(), it_p->second.end(), selected_point_index) != it_p->second.end()){
-          std::cout << "Erasing " << it_p->first << std::endl;
-          it_p = patrols.erase(it_p);
-        } else {
-          ++it_p;
-        }
-      }}
+      
+      //now erase all patrol that have this point
+      {
+	auto& patrols = mission_model->wp_groups[action_object].patrols;
+	for(auto it_p = patrols.begin(); it_p != patrols.end();) {
+	  if(std::find(it_p->second.begin(), it_p->second.end(), selected_point_index) 
+	     != it_p->second.end()) {
+	    std::cout << "Erasing " << it_p->first << std::endl;
+	    it_p = patrols.erase(it_p);
+	  } 
+	  else {
+	    ++it_p;
+	  }
+	}
+      }
       break;
-
+      
     case Patrol_Add:
       findPoint(pos_vp_px, action_object);
       mission_model->
@@ -334,7 +338,9 @@ void MapViewer::mousePressEvent(QMouseEvent *event)
     case Observations_Add:
       index = mission_model->observation_points_counter++;
       if(mission_model->observations.count(to_string(index)) >= 1){
-        std::cout << "Error : cannot add a point since " << index << " is an existing point" << std::endl;
+        std::cout << "Error : cannot add a point since " 
+		  << index 
+		  << " is an existing point" << std::endl;
         break;
       }
       mission_model->observations[to_string(index)] = a_point;
@@ -354,15 +360,9 @@ void MapViewer::mousePressEvent(QMouseEvent *event)
     this->update();
     return;
   }
-  /*
-  std::cout << "do we stop ?" << std::endl;
-  std::cout << "action_state=" << action_state;
-  std::cout << "  buttons=" << buttons << std::endl;
-  */
 
  // Stop action on button 2
   if((action_state!=Stop)&&(buttons==2)) {
-    //std::cout << "Stop action" << std::endl;
     action_type = None;
     action_state = Stop;
     selected_point_index = "";
@@ -375,7 +375,6 @@ void MapViewer::mousePressEvent(QMouseEvent *event)
     if((!move_action)&(buttons==2) ) {
       move_action = true;
       move_position = pos_map_px;
-      std::cout << "Start move..." << std::endl;
     }
   }
 }
@@ -462,7 +461,7 @@ void MapViewer::resizeEvent ( QResizeEvent * event )
 }
 
 //-----------------------------------------------------------------------------
-void MapViewer::findPoint(QPoint vp_pos)//, std::string &group, std::string &index)
+void MapViewer::findPoint(QPoint vp_pos)
 {
   double sq_dist_min = 10e6;
   QPointF map_pos = mapMeterPosFromViewport(vp_pos);
@@ -520,29 +519,24 @@ void MapViewer::findObsPoint(QPoint vp_pos)
 //-----------------------------------------------------------------------------
 void MapViewer::movePoint(QPoint vp_pos)//, std::string &group, std::string &index)
 {
-  QPointF map_pos = mapMeterPosFromViewport(vp_pos);
-  
-  mission_model->wp_groups[selected_point_group].waypoints[selected_point_index].x = map_pos.x();
-  mission_model->wp_groups[selected_point_group].waypoints[selected_point_index].y = map_pos.y();
+  QPointF map_pos = mapMeterPosFromViewport(vp_pos); 
+  mission_model->wp_groups[selected_point_group].waypoints[selected_point_index].x=map_pos.x();
+  mission_model->wp_groups[selected_point_group].waypoints[selected_point_index].y=map_pos.y();
 }
 
 //-----------------------------------------------------------------------------
 void MapViewer::moveObsPoint(QPoint vp_pos)
 {
-  QPointF map_pos = mapMeterPosFromViewport(vp_pos);
-  
+  QPointF map_pos = mapMeterPosFromViewport(vp_pos);  
   mission_model->observations[selected_point_index].x = map_pos.x();
   mission_model->observations[selected_point_index].y = map_pos.y();
 }
 
 
 
-
-
 //-----------------------------------------------------------------------------
 void MapViewer::paintEvent(QPaintEvent *)
-{
-  
+{  
   QPainter painter(this);
 
   painter.initFrom(this);
@@ -620,7 +614,6 @@ void MapViewer::paintEvent(QPaintEvent *)
 
   // Plot waypoints groups
   // ---------------------
-
   //std::cout << "filter =" << wp_group_filter << std::endl;
 
   // for each wp_group

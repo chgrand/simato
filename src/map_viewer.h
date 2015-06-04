@@ -6,18 +6,6 @@
 #include <vector>
 #include "mission_model.h"
 
-/*
-typedef struct
-{
-  float x_min;
-  float y_min;
-  float x_max;
-  float y_max;
-  float x_len;
-  float y_len;
-} MapRegion;
-*/
-
 class MapViewer : public QWidget
 {
   Q_OBJECT
