@@ -794,6 +794,7 @@ env.create()
         <arg name="bag_repair" default="false"/>
         <arg name="vnet" default="false"/>
         <arg name="morse" default="false"/>
+        <arg name="auto_start" default="false"/>
         
         <include file="hidden-params.launch" />
 
@@ -802,6 +803,9 @@ env.create()
         <node name="$(anon bag)" pkg="rosbag" type="record" args="/hidden/repair -o hidden_repair" if="$(arg bag_repair)" />
         
         <node name="$(anon morse)" pkg="metal" type="morse_run" args="{morsePath}" if="$(arg morse)" />
+
+        <node name="$(anon autoStart)" pkg="metal" type="autoStart.py" ns="autoStart" if="$(arg auto_start)" />
+
 """.format(morsePath = os.path.join(pathToMission, "run_morse.py")))
             
             f.write("""\n\n    <group if="$(arg simu)">\n""")
@@ -825,6 +829,7 @@ env.create()
     <arg name="executor" default="ros"/>
     <arg name="bag_repair" default="false"/>
     <arg name="vnet" default="false"/>
+    <arg name="auto_start" default="false"/>
     <arg name="alea_file"/>
 
     <param name="/hidden/aleas"        type="str" textfile="$(arg alea_file)" />
@@ -832,7 +837,9 @@ env.create()
     <include file="hidden-params.launch" />
 
     <node name="$(anon visu)" pkg="metal" type="onlineTimeline.py" ns="visu"  if="$(arg visu)" />
-    
+
+    <node name="$(anon autoStart)" pkg="metal" type="autoStart.py" ns="autoStart" if="$(arg auto_start)" />
+
     <node name="$(anon bag)" pkg="rosbag" type="record" args="/hidden/repair -o hidden_repair" if="$(arg bag_repair)" />
     <node name="$(anon bag)" pkg="rosbag" type="record" args="/hidden/stats /hidden/stnvisu /hidden/start /hidden/repair -O $(optenv ROS_LOG_DIR ~/.ros)/stats.bag" />
     
