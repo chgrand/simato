@@ -795,6 +795,7 @@ env.create()
         <arg name="vnet" default="false"/>
         <arg name="morse" default="false"/>
         <arg name="auto_start" default="false"/>
+        <arg name="ismac" default="false" />
         
         <include file="hidden-params.launch" />
 
