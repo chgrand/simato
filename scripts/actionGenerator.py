@@ -798,6 +798,10 @@ env.create()
         
         <include file="hidden-params.launch" />
 
+        <include file="$(find ismac)/launch/start.launch" if="$(arg ismac)">
+            <arg name="mission_file" value="{missionFile}" />
+        </include>
+
         <node name="$(anon visu)" pkg="metal" type="onlineTimeline.py" ns="visu"  if="$(arg visu)" />
         
         <node name="$(anon bag)" pkg="rosbag" type="record" args="/hidden/repair -o hidden_repair" if="$(arg bag_repair)" />
@@ -806,7 +810,8 @@ env.create()
 
         <node name="$(anon autoStart)" pkg="metal" type="autoStart.py" ns="autoStart" if="$(arg auto_start)" />
 
-""".format(morsePath = os.path.join(pathToMission, "run_morse.py")))
+""".format(morsePath = os.path.join(pathToMission, "run_morse.py"), missionFile = pathToMission+".json" ))
+
             
             f.write("""\n\n    <group if="$(arg simu)">\n""")
             
