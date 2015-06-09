@@ -114,8 +114,8 @@ class ProblemGenerator:
                     break
                     
             if initIndex is None:
-                self.mission["wp_groups"][self.mission["agents"][agent]["wp_group"]]["waypoints"]["_init"] = initPos
-                initIndex = "_init"
+                initIndex = "_init_" + agent
+                self.mission["wp_groups"][self.mission["agents"][agent]["wp_group"]]["waypoints"][initIndex] = initPos
             
             self.initIndex[agent] = initIndex
         
@@ -459,7 +459,7 @@ class ProblemGenerator:
     
             if not canCommunicate:
                 logging.warning("Robots %s and %s cannot communicate" % (self.getRobotName(robot1), self.getRobotName(robot2)))
-                self.canLaunchHiPOP = False
+                #self.canLaunchHiPOP = False
         logging.info("Found %d com links" % count)
 
 
@@ -754,7 +754,7 @@ class AGV(ATRV):
         self.append(waypoint)
         gps.add_interface('socket')
         waypoint.add_interface('socket')
-        self.translate(x, y, 1)
+        self.translate(x, y, 5)
 {robots}
 
 # Scene
