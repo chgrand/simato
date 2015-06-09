@@ -942,11 +942,11 @@ def setup():
     
     os.chdir(outputFolder)
     
-    return p,missionName,pathToMission
+    return p,missionName,pathToMission,args.missionFile
 
 def main():
     
-    p,missionName,pathToMission = setup()
+    p,missionName,pathToMission,missionFile = setup()
 
     ### Writing HiPOP files ###
     hipopFolder = "hipop-files"
@@ -998,7 +998,7 @@ hipop --logLevel error -H {helper} -I {planInit} -P hadd_time_lifo -A areuse_mot
             try:
                 import actionvisu
                 
-                actionvisu.drawPlanGeo(os.path.join(hipopFolder, data["outputName"] + ".pddl"), "plan-geo.png")
+                actionvisu.drawPlanGeo(os.path.join(hipopFolder, data["outputName"] + ".pddl"), "plan-geo.png", missionFile=missionFile)
                 actionvisu.drawPlanTimeline(os.path.join(hipopFolder, data["outputName"] + ".pddl"), "plan-timeline.png")
                 
             except ImportError:

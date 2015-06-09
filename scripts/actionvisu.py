@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
 
 import matplotlib
-matplotlib.use('Agg')
+matplotlib.use('Qt4Agg')
 import matplotlib.pyplot as plt
+from scipy.misc import imread
+
 
 import itertools
+import json
 import os
 import re
 import sys
+
+import argparse
 
 def getCoord(ptName):
     l = ptName.split("_")
@@ -71,7 +76,7 @@ def getActionsFromPlan(filename):
                 
     return result
     
-def drawPlanGeo(filename, outputFile = None):
+def drawPlanGeo(filename, outputFile = None, missionFile=None):
     plt.clf()
     fig = plt.figure(1)
     plt.axis('equal')
@@ -118,7 +123,13 @@ def drawPlanGeo(filename, outputFile = None):
     inits = [p[0] for p in paths.values()]
     plt.plot([pt[0] for pt in inits], [pt[1] for pt in inits], color="black", marker="s", label="init pos", alpha=0.7, linestyle="")
     
-    #plt.legend(loc="lower right")
+    if missionFile is not None:
+        with open(missionFile) as f:
+            mission = json.load(f)
+        img = imread(os.path.expandvars(os.path.join(mission["home_dir"], mission["map_data"]["image_file"])))
+        size = mission["map_data"]["map_size"]
+        plt.imshow(img, extent=[float(size["x_min"]), float(size["x_max"]), float(size["y_min"]), float(size["y_max"])])
+
     plt.legend(loc="best")
        
     if outputFile is not None:
@@ -170,23 +181,27 @@ def drawPlanTimeline(filename, outputFile = None):
 
 def main(argv):
 
-    planFile = None
-    
-    if len(argv) < 2:
-        print("Usage : actionvisu.py plan.pddl [plan.png]")
-        sys.exit(1)
-    else:
-        planFile = argv[1]
-        if len(argv) > 2:
-            outputFile = argv[2]
-        else:
-            outputFile = None
-        if not os.access(planFile, os.R_OK):
-            print("Cannot open %s" % planFile)
-            sys.exit(1)
+    parser = argparse.ArgumentParser(description='Create a visualisation for PDDL plans')
+    parser.add_argument('--missionFile', type=str, default=None)
+    parser.add_argument('pddlFile', type=str)
+    parser.add_argument('--outputFile', type=str, default=None)
+    parser.add_argument('--type', choices=["geo", "timeline"], default="geo")
+    args = parser.parse_args()
 
-    #fig = drawPlanGeo(planFile, outputFile)
-    drawPlanTimeline(planFile, outputFile)
+
+    planFile = args.pddlFile
+    if not planFile.endswith(".pddl"):
+        print("Warning : are you sure you provided a pddl file ? : %s" % planFile)
+    outputFile = args.outputFile
+    
+    if not os.access(planFile, os.R_OK):
+        print("Cannot open %s" % planFile)
+        sys.exit(1)
+
+    if args.type == "geo":
+        drawPlanGeo(planFile, outputFile, missionFile=args.missionFile)
+    else:
+        drawPlanTimeline(planFile, outputFile)
     plt.show()
 
 
