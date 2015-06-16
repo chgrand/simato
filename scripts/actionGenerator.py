@@ -10,6 +10,7 @@ import os
 from pprint import pprint
 import shutil
 import sys
+import yaml
 
 import pddl
 import subprocess
@@ -776,12 +777,15 @@ env.create()
     <param name="hidden/plan"        type="str" textfile="{plan}" />
     <param name="hidden/pddl/domain" type="str" textfile="{domain}" />
     <param name="hidden/pddl/prb"    type="str" textfile="{prb}" />
-    <param name="hidden/pddl/helper" type="str" textfile="{helper}" /> 
+    <param name="hidden/pddl/helper" type="str" textfile="{helper}" />
+
+    <rosparam command="load" param="vnet/config" file="{vnet}" />
 </launch>
 """.format(plan  =os.path.join(pathToMission, "hipop-files/" + data["planFile"]),
            domain=os.path.join(pathToMission, "hipop-files/" + data["domainFile"]),
            prb   =os.path.join(pathToMission, "hipop-files/" + data["prbFile"]),
-           helper=os.path.join(pathToMission, "hipop-files/" + data["helperFile"])))
+           helper=os.path.join(pathToMission, "hipop-files/" + data["helperFile"]),
+           vnet  =os.path.join(pathToMission, "vnet_config.yaml")))
         
         
         with open("mission.launch", "w") as f:
@@ -796,7 +800,7 @@ env.create()
         <arg name="morse" default="false"/>
         <arg name="auto_start" default="false"/>
         <arg name="ismac" default="false" />
-        
+
         <include file="hidden-params.launch" />
 
         <include file="$(find ismac)/launch/start.launch" if="$(arg ismac)">
@@ -825,6 +829,7 @@ env.create()
 """.format(robot=r))
             f.write("""    </group>\n""")
 
+            f.write("""        <node name="vnet" pkg="vnet" type="vnet_ros.py" if="$(arg vnet)"/>\n""")
             f.write("</launch>\n")
 
         with open("stats_simu.launch", "w") as f:
@@ -861,9 +866,17 @@ env.create()
     </include>
 """.format(robot=r))
    
+            f.write("""        <node name="vnet" pkg="vnet" type="vnet_ros.py" if="$(arg vnet)"/>\n""")
             f.write("</launch>\n")
 
+    def writeVNetFile(self, f):
+        vNetConfig = {}
+        for topic in ["communicate", "repair", "mastnUpdate"]:
+            vNetConfig[topic] = {}
+            for r in self.getRobotList():
+                vNetConfig[topic][r] = {"in":"/%s/hidden/%s/in" % (r, topic), "out":"/%s/hidden/%s/out" % (r, topic)}
 
+        yaml.dump(vNetConfig, f)
 
 def setup():
     parser = argparse.ArgumentParser(description='Create a set of plans for ACTION')
@@ -1006,6 +1019,9 @@ hipop --logLevel error -H {helper} -I {planInit} -P hadd_time_lifo -A areuse_mot
 
     with open("run_morse.py", "w") as f:
         p.writeMorseFile(f)
+
+    with open("vnet_config.yaml", "w") as f:
+        p.writeVNetFile(f)
 
     p.writeRoslaunchFiles(pathToMission, data)
 
