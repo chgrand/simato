@@ -1042,6 +1042,7 @@ hipop --logLevel error -H {helper} -I {planInit} -P hadd_time_lifo -A areuse_mot
                 
                 actionvisu.drawPlanGeo(os.path.join(hipopFolder, data["outputName"] + ".pddl"), "plan-geo.png", missionFile=missionFile)
                 actionvisu.drawPlanTimeline(os.path.join(hipopFolder, data["outputName"] + ".pddl"), "plan-timeline.png")
+                actionvisu.drawPlanTimeline(os.path.join(hipopFolder, data["outputName"] + ".pddl"), "plan-timeline-move.png", onlyMove = True)
                 
             except ImportError:
                 logging.error("Cannot draw plans. Import actionvisu failed")

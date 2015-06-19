@@ -141,25 +141,30 @@ def drawPlanGeo(filename, outputFile = None, missionFile=None):
     except ImportError:
         print("Cannot import scipy. No background")
 
-    plt.legend(loc="upper center", bbox_to_anchor=(0.5, 1.1), fancybox=True, shadow=True, ncol=3)
+    plt.legend(loc="upper center", bbox_to_anchor=(0.5, 1.1), fancybox=True, shadow=True, ncol=4)
 
     if outputFile is not None:
         plt.savefig(outputFile, bbox_inches='tight')
     return fig
 
-def drawPlanTimeline(filename, outputFile = None):
+def drawPlanTimeline(filename, outputFile = None, onlyMove = False):
     plt.clf()
     fig = plt.figure(1)
     data = getActionsFromPlan(filename)
     
     actions = {}
     actionsType = set([d["type"] for d in data if "type" in d])
+    if onlyMove:
+        actionsType = set([t for t in actionsType if "move" in t])
+
     for robot in set([d["robot"] for d in data if "robot" in d]):
         actions[robot] = {}
         for a in actionsType:
             actions[robot][a] = []
 
     for d in data:
+        if onlyMove and "move" not in d["type"]: continue
+
         if "robot1" in d:
             actions[d["robot1"]][d["type"]] += [(float(d["tStart"]), float(d["dur"]))]
             actions[d["robot2"]][d["type"]] += [(float(d["tStart"]), float(d["dur"]))]
@@ -196,7 +201,7 @@ def main(argv):
     parser.add_argument('--missionFile', type=str, default=None)
     parser.add_argument('pddlFile', type=str)
     parser.add_argument('--outputFile', type=str, default=None)
-    parser.add_argument('--type', choices=["geo", "timeline"], default="geo")
+    parser.add_argument('--type', choices=["geo", "timeline", "timelineMove"], default="geo")
     args = parser.parse_args()
 
 
@@ -211,8 +216,11 @@ def main(argv):
 
     if args.type == "geo":
         drawPlanGeo(planFile, outputFile, missionFile=args.missionFile)
-    else:
+    elif args.type == "timeline":
         drawPlanTimeline(planFile, outputFile)
+    elif args.type == "timelineMove":
+        drawPlanTimeline(planFile, outputFile, onlyMove = True)
+
     plt.show()
 
 
