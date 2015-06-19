@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 2.8.11)
 
+include("CMakeLists.local.txt" OPTIONAL)
+
 PROJECT(simato)
 
 option(INSTALL_SCRIPTS "Set to ON to also install the scripts" ON)
