@@ -3,7 +3,7 @@
 #ifndef MAIN_WINDOW_H
 #define MAIN_WINDOW_H
 
-#include <QtGui>
+#include <QtWidgets>
 #include "mission_model.h"
 #include "mission_viewer.h"
 #include "mission_data.hpp"

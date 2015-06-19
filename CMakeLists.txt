@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.11)
 
 PROJECT(simato)
 
@@ -7,11 +7,11 @@ set(PYTHON_VERSION "2.7" CACHE STRING "Python version. Default is 2.7")
 
 ADD_DEFINITIONS(-std=c++11)
 
-# QT4 configuration
-FIND_PACKAGE(Qt4 REQUIRED)
-INCLUDE(${QT_USE_FILE})
-ADD_DEFINITIONS(${QT_DEFINITIONS})
+# QT5 configuration
+FIND_PACKAGE(Qt5Widgets REQUIRED)
 
+FIND_PACKAGE(Boost COMPONENTS python3 REQUIRED)
+INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 
 # Binary simato
 SET(simato_HEADERS 
@@ -24,7 +24,7 @@ SET(simato_HEADERS
 )
 
 #QT specific builds
-QT4_WRAP_CPP(simato_HEADERS_MOC ${simato_HEADERS})
+QT5_WRAP_CPP(simato_HEADERS_MOC ${simato_HEADERS})
 
 
 ADD_EXECUTABLE(simato
@@ -40,7 +40,7 @@ ADD_EXECUTABLE(simato
   ${simato_HEADERS_MOC}
   ${simato_HEADERS}
 )
-TARGET_LINK_LIBRARIES(simato ${QT_LIBRARIES})
+TARGET_LINK_LIBRARIES(simato Qt5::Widgets ${Boost_LIBRARIES})
 
 ################################
 # Installation

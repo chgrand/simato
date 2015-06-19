@@ -2,7 +2,7 @@
 #ifndef MAPVIEWER_H
 #define MAPVIEWER_H
 
-#include <QtGui>
+#include <QtWidgets>
 #include <vector>
 #include "mission_model.h"
 
