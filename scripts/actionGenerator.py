@@ -38,9 +38,6 @@ initActionLength = 30 #s
 useAAVPatrol = True
 useAGVPatrol = True
 
-
-distanceFileName = "distancemap.json"
-
 class IllFormatedInput(Exception):
     pass
 
@@ -51,7 +48,7 @@ costExploreAction = 1
 
 class ProblemGenerator:
     
-    def __init__(self, mission):
+    def __init__(self, mission, distanceFile):
     
         self.canLaunchHiPOP = True
         self.mission = mission
@@ -122,29 +119,65 @@ class ProblemGenerator:
         
         self.distanceMap = {}
 
-        self.computeDistanceAGV()
+        self.computeDistanceAGV(distanceFile)
         
         logging.info("Initialisation done")
 
 
-    def computeDistanceAGV(self):
-        if useGladysDistance:
+    def computeDistanceAGV(self, distanceFile):
+
+        recompute = False
+        if os.access(distanceFile, os.R_OK):
+            with open(distanceFile, "r") as f:
+                self.distanceMap = json.load(f)
+
+            #Check if it needs to be recomputed
+            for model in self.mission["models"].keys():
+                if not self.useGladysForModel(model): continue
+                if model not in self.distanceMap :
+                    recompute = True
+                    break
+
+                points = set()
+                for r in self.mission["agents"].values():
+                    if r["model"] == model:
+                        for pt in self.mission["wp_groups"][r["wp_group"]]["waypoints"].values():
+                            points.add((pt["x"], pt["y"]))
+                points = list(points)
+
+                for pt1,pt2 in itertools.combinations(points, 2):
+                    k1 = "%s_%s_%s_%s" % (pt1[0], pt1[1], pt2[0], pt2[1])
+                    k2 = "%s_%s_%s_%s" % (pt2[0], pt2[1], pt1[0], pt1[1])
+                    if k1 not in self.distanceMap[model] and k2 not in self.distanceMap[model]:
+                        logging.warning("Points have changed. Recomputing the distances")
+                        recompute = True
+                        break
+
+                if recompute:
+                    break
+
+        else:
+            logging.warning("Cannot find %s. Using gladys to compute the distances." % distanceFile)
+            recompute = True
+
+        if recompute:
             for model in self.mission["models"].keys():
                 if not self.useGladysForModel(model):
                     continue
                 
-                logging.info("Computing distances for %s" % model)
+                logging.info("Pre-computing distances for %s" % model)
 
                 self.distanceMap[model] = {}
                 
                 g = self.gladys[model]
                 
-                points = []
+                points = set()
                 for r in self.mission["agents"].values():
                     if r["model"] == model:
                         for pt in self.mission["wp_groups"][r["wp_group"]]["waypoints"].values():
-                            points.append((pt["x"], pt["y"]))
-                
+                            points.add((pt["x"], pt["y"]))
+                points = list(points)
+
                 for i in range(len(points)):
                     logging.debug("Using gladys for computing distance map of %s %d / %d" % (model,i,len(points)))
                     costs = g.single_source_all_costs(points[i], points[i+1:])
@@ -154,15 +187,9 @@ class ProblemGenerator:
 
                 logging.info("Computing distances for %s done" % model)
         
-            with open(distanceFileName, "w") as f:
+            with open(distanceFile, "w") as f:
                 json.dump(self.distanceMap, f)
-        else:
-            if not os.access(distanceFileName, os.R_OK):
-                logging.error("Cannot find %s. Use gladys to compute it. Aborting" % distanceFileName)
-                sys.exit(1)
-            
-            with open(distanceFileName, "r") as f:
-                self.distanceMap = json.load(f)
+
 
     def getGladysDistance(self, model, start, end):
         if not self.useGladysForModel(model):
@@ -882,7 +909,7 @@ def setup():
     parser = argparse.ArgumentParser(description='Create a set of plans for ACTION')
     parser.add_argument('missionFile', type=str)
     parser.add_argument('--outputFolder', type=str, default=None)
-    parser.add_argument('-g', '--noGladys' , action='store_true')
+    parser.add_argument('-g', '--forceGladys' , action='store_true')
     parser.add_argument('--noAAVPatrols', action='store_true')
     parser.add_argument('--noAGVPatrols', action='store_true')
     parser.add_argument('--force', action='store_true')
@@ -920,6 +947,8 @@ def setup():
 
     logging.info("Output folder : %s" % outputFolder) 
 
+    distanceFileName = "distancemap.json"
+
     if os.access(outputFolder, os.R_OK):
         if not args.force:
             print("Output folder already exists. Do you want to erase it ? Press enter to continue")
@@ -929,6 +958,7 @@ def setup():
                 input()
 
         for f in os.listdir(outputFolder):
+            if f == distanceFileName and not args.forceGladys: continue #if the distances are pre-computed, do not remove them
             s = os.path.join(outputFolder, f)
             if os.path.isdir(s):
                 shutil.rmtree(s)
@@ -937,21 +967,14 @@ def setup():
     else:
         os.mkdir(outputFolder)
 
-    global useGladysDistance
-    useGladysDistance = not args.noGladys
-    if args.noGladys:
-        logging.info("Using distance file")
-        if not os.access(os.path.join(mission["home_dir"], distanceFileName), os.R_OK):
-            logging.error("Cannot access the distance file : %s" % os.path.join(outputFolder, distanceFileName))
-            logging.error("You can't pass the noGladys option")
-            useGladysDistance = True
+    distanceFile = os.path.join(outputFolder, distanceFileName)
 
     if outputFolder.endswith("/"):
         missionName = os.path.basename(os.path.split(outputFolder)[0])
     else:
         missionName = os.path.basename(outputFolder)
 
-    p = ProblemGenerator(mission)
+    p = ProblemGenerator(mission, distanceFile)
     
     os.chdir(outputFolder)
     
