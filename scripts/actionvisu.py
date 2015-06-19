@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 
 import matplotlib
-matplotlib.use('Qt4Agg')
+matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
-from scipy.misc import imread
 
 
 import itertools
@@ -83,6 +82,12 @@ def drawPlanGeo(filename, outputFile = None, missionFile=None):
     
     paths = {}
     
+    if missionFile is not None:
+        with open(missionFile) as f:
+            mission = json.load(f)
+    else:
+        mission = None
+
     for d in getActionsFromPlan(filename):
         if d["type"] == "move":
             robot = d["robot"]
@@ -108,10 +113,17 @@ def drawPlanGeo(filename, outputFile = None, missionFile=None):
     plt.plot([], [], color="cyan", label="communication")
     plt.plot([], [], color="yellow", label="observation")
 
+    inits = [p[0] for p in paths.values()]
+    plt.plot([pt[0] for pt in inits], [pt[1] for pt in inits], color="black", marker="s", label="init pos", alpha=0.7, linestyle="")
+
     colors = itertools.cycle(["r", "b", "g", "m"])
 
-    for robot,p in paths.items():
-        c = next(colors)
+    for robot,p in sorted(paths.items()):
+        #get color
+        if mission is not None and robot in mission["agents"]:
+            c = mission["agents"][robot]["color"]
+        else:
+            c = next(colors)
         for start, end in zip(p, p[1:]):
             plt.arrow(start[0], start[1], end[0] - start[0], end[1] - start[1], color=c, head_width=2, head_length=4, length_includes_head=True)
         
@@ -119,19 +131,18 @@ def drawPlanGeo(filename, outputFile = None, missionFile=None):
         
         #draw all paths in transparent to fix the borders and put the legend
         plt.plot([pt[0] for pt in p], [pt[1] for pt in p], c=c, marker=" ", label=robot)
-    
-    inits = [p[0] for p in paths.values()]
-    plt.plot([pt[0] for pt in inits], [pt[1] for pt in inits], color="black", marker="s", label="init pos", alpha=0.7, linestyle="")
-    
-    if missionFile is not None:
-        with open(missionFile) as f:
-            mission = json.load(f)
-        img = imread(os.path.expandvars(os.path.join(mission["home_dir"], mission["map_data"]["image_file"])))
-        size = mission["map_data"]["map_size"]
-        plt.imshow(img, extent=[float(size["x_min"]), float(size["x_max"]), float(size["y_min"]), float(size["y_max"])])
 
-    plt.legend(loc="best")
-       
+    try:
+        from scipy.misc import imread
+        if mission is not None:
+            img = imread(os.path.expandvars(os.path.join(mission["home_dir"], mission["map_data"]["image_file"])))
+            size = mission["map_data"]["map_size"]
+            plt.imshow(img, extent=[float(size["x_min"]), float(size["x_max"]), float(size["y_min"]), float(size["y_max"])])
+    except ImportError:
+        print("Cannot import scipy. No background")
+
+    plt.legend(loc="upper center", bbox_to_anchor=(0.5, 1.1), fancybox=True, shadow=True, ncol=3)
+
     if outputFile is not None:
         plt.savefig(outputFile, bbox_inches='tight')
     return fig
