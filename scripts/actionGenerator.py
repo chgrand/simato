@@ -586,6 +586,12 @@ class ProblemGenerator:
 
             #move-i goes from patrol[i] to patrol[i+1]
             for i,f,t in zip(range(len(patrol)), patrol, patrol[1:]):
+
+                cost = self.computeDistance(robot, f, t)
+                if cost == 0 or cost == float("inf"):
+                    logging.error("In patrol %s, robot %s cannot go from %s to %s" % (patrolName, robot, self.getLocName(f), self.getLocName(t)))
+                    self.canLaunchHiPOP = False
+
                 m.addAction("move-%d" % i, "move %s %s %s" % (robot, self.getLocName(f), self.getLocName(t)))
                     
                 if i == 0:
