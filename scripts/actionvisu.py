@@ -1,7 +1,7 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 import matplotlib
-matplotlib.use('Qt5Agg')
+matplotlib.use('Qt4Agg')
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
@@ -145,8 +145,13 @@ def drawPlanGeo(filename, outputFile = None, missionFile=None):
     except ImportError:
         print("Cannot import scipy. No background")
 
-    plt.legend(loc="upper center", bbox_to_anchor=(0.5, 1.1), fancybox=True, shadow=True, ncol=4)
+    plt.legend(loc="upper center", bbox_to_anchor=(0.5, 1.15), fancybox=True, shadow=True, ncol=4)
 
+    if mission is not None:
+        size = mission["map_data"]["map_size"]
+        ax = plt.gca()
+        ax.set_ylim((float(size["y_min"]), float(size["y_max"]) + 20))
+    
     if outputFile is not None:
         plt.savefig(outputFile, bbox_inches='tight')
     return fig
@@ -192,7 +197,7 @@ def drawPlanTimeline(filename, outputFile = None, onlyMove = False):
 
     #Setup the plot
     ax = plt.gca()
-    ax.set_yticks(range(len(captions)))
+    ax.set_yticks(range(len(captions) + 1))
     ax.set_yticklabels(captions)
     plt.xlabel('Time')
     
@@ -294,7 +299,7 @@ def drawPlanTime(filename, outputFile = None, missionFile=None):
     plt.legend(loc="upper center", bbox_to_anchor=(0.5, 1.15), fancybox=True, shadow=True, ncol=3)
 
     if outputFile is not None:
-        ani.save(outputFile)
+        ani.save(outputFile, writer="mencoder")
 
 def main(argv):
 
