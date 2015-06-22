@@ -3,7 +3,7 @@
 import matplotlib
 matplotlib.use('Qt5Agg')
 import matplotlib.pyplot as plt
-
+import matplotlib.animation as animation
 
 import itertools
 import json
@@ -17,6 +17,11 @@ def getCoord(ptName):
     l = ptName.split("_")
     return (float(l[1])/100, float(l[2])/100)
 
+"""
+Return a list of actions. Each action is a dictionary with a "type" field indication
+the type of action. It contains at least a field "tStart", "dur, and "name".
+The other actions depends on the type : "robot", "start", "end", ...
+"""
 def getActionsFromPlan(filename):
     result = []
     
@@ -29,7 +34,7 @@ def getActionsFromPlan(filename):
             m = re.match("^(\d*(?:.\d*)?)\s*:\s*\((.*)\)\s*\[(\d*(?:.\d*)?)\]", line)
             if m:
                 tStart, actionName, dur = m.groups()
-                d = {"tStart":tStart, "dur":dur, "name":actionName}
+                d = {"tStart":float(tStart), "dur":float(dur), "name":actionName}
                 if actionName.startswith("move"):
                     _,robot,start,end = actionName.split(" ")
                     start = getCoord(start)
@@ -195,13 +200,93 @@ def drawPlanTimeline(filename, outputFile = None, onlyMove = False):
     if outputFile is not None:
         plt.savefig(outputFile, bbox_inches='tight')
 
+def drawPlanTime(filename, outputFile = None, missionFile=None):
+    if missionFile is not None:
+        with open(missionFile) as f:
+            mission = json.load(f)
+    else:
+        mission = None
+
+    plt.clf()
+    fig = plt.figure(1)
+    data = getActionsFromPlan(filename)
+
+    tMax = max([float(d["tStart"]) + float(d["dur"]) for d in data])
+
+    timeScale = 1
+
+    lines = {}
+    paths = {}
+    points = []
+    for d in data:
+        if d["type"] != "move": continue
+
+        robot = d["robot"]
+        start = d["start"]
+        end = d["end"]
+
+        points.append(start); points.append(end)
+        if robot not in paths:
+            paths[robot] = []
+
+        paths[robot].append({"tStart" : d["tStart"], "tEnd" : d["tStart"] + d["dur"], "wpStart":start, "wpEnd":end})
+
+    #TODO : use mission colors
+    colors = itertools.cycle(["k", "r", "g", "b"])
+    for robot in sorted(paths.keys()):
+        if mission is not None and robot in mission["agents"]:
+            c = mission["agents"][robot]["color"]
+        else:
+            c = next(colors)
+
+        lines[robot], = plt.plot([], [], "-", color=c, label=robot)
+    l1, = plt.plot([], [], 'r-')
+
+    def update(num):
+        #print num
+
+        for robot,path in paths.items():
+            p = [sorted(path, key= lambda x:x["tStart"])[0]["wpStart"]] #path to draw
+
+            t = num / timeScale
+            for d in sorted(path, key= lambda x:x["tStart"]):
+                if d["tEnd"] < t:
+                    p.append(d["wpEnd"])
+                elif d["tStart"] < t and d["tEnd"] > t:
+                    index = (t - d["tStart"])/(d["tEnd"] - d["tStart"])
+                    p.append( [d["wpStart"][0] + index*(d["wpEnd"][0] - d["wpStart"][0]), d["wpStart"][1] + index*(d["wpEnd"][1] - d["wpStart"][1])])
+                else:
+                    break
+            lines[robot].set_data([a[0] for a in p], [a[1] for a in p])
+
+        return (lines.values())
+
+    plt.xlim(min([p[0] for p in points]), max([p[0] for p in points]))
+    plt.ylim(min([p[1] for p in points]), max([p[1] for p in points]))
+    plt.gca().set_aspect('equal', adjustable='box')
+    ani = animation.FuncAnimation(fig, update, int(tMax*timeScale), interval=100, blit=True, repeat=False)
+
+    try:
+        from scipy.misc import imread
+        if mission is not None:
+            img = imread(os.path.expandvars(os.path.join(mission["home_dir"], mission["map_data"]["image_file"])))
+            size = mission["map_data"]["map_size"]
+            plt.imshow(img, extent=[float(size["x_min"]), float(size["x_max"]), float(size["y_min"]), float(size["y_max"])], alpha=0.5)
+    except ImportError:
+        print("Cannot import scipy. No background")
+
+    plt.legend(loc="upper center", bbox_to_anchor=(0.5, 1.15), fancybox=True, shadow=True, ncol=3)
+
+    if outputFile is not None:
+        ani.save(outputFile)
+
 def main(argv):
 
     parser = argparse.ArgumentParser(description='Create a visualisation for PDDL plans')
     parser.add_argument('--missionFile', type=str, default=None)
     parser.add_argument('pddlFile', type=str)
     parser.add_argument('--outputFile', type=str, default=None)
-    parser.add_argument('--type', choices=["geo", "timeline", "timelineMove"], default="geo")
+    parser.add_argument('--type', choices=["geo", "timeline", "timelineMove", "time"], default="geo")
     args = parser.parse_args()
 
 
@@ -220,6 +305,8 @@ def main(argv):
         drawPlanTimeline(planFile, outputFile)
     elif args.type == "timelineMove":
         drawPlanTimeline(planFile, outputFile, onlyMove = True)
+    elif args.type == "time":
+        drawPlanTime(planFile, outputFile, missionFile=args.missionFile)
 
     plt.show()
 
