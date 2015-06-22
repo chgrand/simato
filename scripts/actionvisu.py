@@ -54,7 +54,6 @@ def getActionsFromPlan(filename):
                     d["robot2"] = robot2
                     d["start1"] = start1
                     d["start2"] = start2
-                    d["end"] = end
 
                 elif actionName.startswith("observe"):
                     _,robot,start,end = actionName.split(" ")
@@ -218,18 +217,23 @@ def drawPlanTime(filename, outputFile = None, missionFile=None):
     lines = {}
     paths = {}
     points = []
+    coms = []
     for d in data:
-        if d["type"] != "move": continue
+        if d["type"] == "move":
+            robot = d["robot"]
+            start = d["start"]
+            end = d["end"]
 
-        robot = d["robot"]
-        start = d["start"]
-        end = d["end"]
+            points.append(start); points.append(end)
+            if robot not in paths:
+                paths[robot] = []
 
-        points.append(start); points.append(end)
-        if robot not in paths:
-            paths[robot] = []
+            paths[robot].append({"tStart" : d["tStart"], "tEnd" : d["tStart"] + d["dur"], "wpStart":start, "wpEnd":end})
+        elif d["type"] == "communicate":
+            start = d["start1"]
+            end = d["start2"]
 
-        paths[robot].append({"tStart" : d["tStart"], "tEnd" : d["tStart"] + d["dur"], "wpStart":start, "wpEnd":end})
+            coms.append({"tStart" : d["tStart"], "tEnd" : d["tStart"] + d["dur"], "wpStart":start, "wpEnd":end})
 
     #TODO : use mission colors
     colors = itertools.cycle(["k", "r", "g", "b"])
@@ -240,15 +244,20 @@ def drawPlanTime(filename, outputFile = None, missionFile=None):
             c = next(colors)
 
         lines[robot], = plt.plot([], [], "-", color=c, label=robot)
-    l1, = plt.plot([], [], 'r-')
+
+    lineComs = []
+    for i in range(len(coms)):
+        lineCom, = plt.plot([], [], 'r-', linewidth=3)
+        lineComs.append(lineCom)
 
     def update(num):
         #print num
 
+        t = num / timeScale
+
         for robot,path in paths.items():
             p = [sorted(path, key= lambda x:x["tStart"])[0]["wpStart"]] #path to draw
 
-            t = num / timeScale
             for d in sorted(path, key= lambda x:x["tStart"]):
                 if d["tEnd"] < t:
                     p.append(d["wpEnd"])
@@ -259,7 +268,14 @@ def drawPlanTime(filename, outputFile = None, missionFile=None):
                     break
             lines[robot].set_data([a[0] for a in p], [a[1] for a in p])
 
-        return (lines.values())
+        data = []
+        for i,c in enumerate(coms):
+            if False or (c["tStart"] - 5 <= t and t <= c["tEnd"] + 5): #add some leeway to see it
+                lineComs[i].set_data([c["wpStart"][0], c["wpEnd"][0]], [c["wpStart"][1], c["wpEnd"][1]])
+            else:
+                lineComs[i].set_data([], [])
+
+        return (list(lines.values()) + lineComs)
 
     plt.xlim(min([p[0] for p in points]), max([p[0] for p in points]))
     plt.ylim(min([p[1] for p in points]), max([p[1] for p in points]))
