@@ -137,7 +137,7 @@ def drawPlanGeo(filename, outputFile = None, missionFile=None):
         if mission is not None:
             img = imread(os.path.expandvars(os.path.join(mission["home_dir"], mission["map_data"]["image_file"])))
             size = mission["map_data"]["map_size"]
-            plt.imshow(img, extent=[float(size["x_min"]), float(size["x_max"]), float(size["y_min"]), float(size["y_max"])])
+            plt.imshow(img, extent=[float(size["x_min"]), float(size["x_max"]), float(size["y_min"]), float(size["y_max"])], alpha=0.5)
     except ImportError:
         print("Cannot import scipy. No background")
 

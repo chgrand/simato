@@ -707,6 +707,8 @@ class ProblemGenerator:
                     actionName1 = "communicate %s %s %s %s" % (c["agent1"], c["agent2"], self.getLocName(pt1), self.getLocName(pt2))
                     actionName2 = "communicate %s %s %s %s" % (c["agent2"], c["agent1"], self.getLocName(pt2), self.getLocName(pt1))
                     actionName3 = "communicate-meta %s %s %s %s" % (c["agent1"], c["agent2"], self.getLocName(pt1), self.getLocName(pt2))
+                    lit1 = "in-communication-at %s %s %s %s" % (c["agent1"], c["agent2"], self.getLocName(pt1), self.getLocName(pt2))
+                    lit2 = "in-communication-at %s %s %s %s" % (c["agent2"], c["agent1"], self.getLocName(pt2), self.getLocName(pt1))
 
                     result["actions"][str(actionIndex)] = {
                                                 "name":actionName1,
@@ -739,7 +741,19 @@ class ProblemGenerator:
                     #result["absolute-time"].append([nextTimepoint + 2, float(c["date"])])
                     result["absolute-time"].append([nextTimepoint + 4, float(c["date"])])
                     #result["absolute-time"].append([nextTimepoint + 5, float(c["date"]) + 0.5])
-    
+
+                    result["causal-links"].append({ "startAction" : str(actionIndex),
+                                                    "endAction" : str(actionIndex+2),
+                                                    "startTp": nextTimepoint, "endTp" : nextTimepoint + 4,
+                                                    "startTs":1,"endTs":3,
+                                                    "lit":lit1})
+
+                    result["causal-links"].append({ "startAction" : str(actionIndex+1),
+                                                    "endAction" : str(actionIndex+2),
+                                                    "startTp": nextTimepoint+2, "endTp" : nextTimepoint + 4,
+                                                    "startTs":1,"endTs":3,
+                                                    "lit":lit2})
+
                     nextTimepoint += 6
         
         return json.dumps(result)
