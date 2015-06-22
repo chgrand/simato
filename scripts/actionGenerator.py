@@ -213,6 +213,7 @@ class ProblemGenerator:
         return list(self.mission["models"].keys())
 
     def useGladysForModel(self, model):
+        return False
         return model in ["mana", "minnie", "effibot"]
 
     def getRobotList(self):
@@ -854,7 +855,7 @@ env.create()
             <arg name="mission_file" value="{missionFile}" />
         </include>
 
-        <node name="$(anon visu)" pkg="metal" type="onlineTimeline.py" ns="visu"  if="$(arg visu)" />
+        <node name="$(anon visu)" pkg="metal" type="onlineTimeline.py" ns="visu" args="--missionFile {missionFile}" if="$(arg visu)" />
         
         <node name="$(anon bag)" pkg="rosbag" type="record" args="/hidden/repair -o hidden_repair" if="$(arg bag_repair)" />
         
@@ -894,7 +895,7 @@ env.create()
 
     <include file="hidden-params.launch" />
 
-    <node name="$(anon visu)" pkg="metal" type="onlineTimeline.py" ns="visu"  if="$(arg visu)" />
+    <node name="$(anon visu)" pkg="metal" type="onlineTimeline.py" ns="visu" args="--missionFile {missionFile}" if="$(arg visu)" />
 
     <node name="$(anon autoStart)" pkg="metal" type="autoStart.py" ns="autoStart" if="$(arg auto_start)" />
 
@@ -904,7 +905,7 @@ env.create()
     <node name="$(anon watcher)" pkg="metal" type="watcher.py" required="true" />
     
     <node name="$(anon aleas_injector)" pkg="metal" type="aleaInjector.py" />
-""")
+""".format(missionFile = pathToMission+".json"))
             for r in self.getRobotList():
                 f.write("""
     <include file="$(find metal)/launch/{robot}.launch">
