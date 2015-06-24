@@ -715,9 +715,9 @@ class ProblemGenerator:
         robots = []
         for r in self.getRobotList():
             if "ressac" in r:
-                robots.append("%s = Ressac(%d, %d)" % (r, self.mission["agents"][r]["position"]["x"], self.mission["agents"][r]["position"]["y"]))
+                robots.append("%s = Ressac(%d, %d) #teleport=True)" % (r, self.mission["agents"][r]["position"]["x"], self.mission["agents"][r]["position"]["y"]))
             else:
-                robots.append("%s = AGV(%d, %d)" % (r, self.mission["agents"][r]["position"]["x"], self.mission["agents"][r]["position"]["y"]))
+                robots.append("%s = AGV(%d, %d) #teleport=True)" % (r, self.mission["agents"][r]["position"]["x"], self.mission["agents"][r]["position"]["y"]))
             
         speedAGV = 1
         if "mana" in self.mission["models"]:
@@ -727,35 +727,46 @@ class ProblemGenerator:
 import os
 
 class Ressac(RMax):
-    def __init__(self, x=0, y=0, z=30):
+    def __init__(self, x=0, y=0, z=30, teleport=False):
         RMax.__init__(self)
-        gps = GPS()
-        self.append(gps)
-        pose = Pose()
-        self.append(pose)
-        pose.add_interface('ros')
-        waypoint = Waypoint()
-        waypoint.properties(FreeZ=True, Speed={speedAAV}, ControlType="Position")
-        self.append(waypoint)
-        gps.add_interface('socket')
-        waypoint.add_interface('socket')
+        if not teleport:
+            gps = GPS()
+            self.append(gps)
+            pose = Pose()
+            self.append(pose)
+            pose.add_interface('ros')
+            waypoint = Waypoint()
+            waypoint.properties(FreeZ=True, Speed={speedAAV}, ControlType="Position")
+            self.append(waypoint)
+            gps.add_interface('socket')
+            waypoint.add_interface('socket')
+        else:
+            teleport = Teleport()
+            teleport.add_interface('ros')
+            self.append(teleport)
         self.translate(x, y, z)
 
 class AGV(ATRV):
-    def __init__(self, x=0, y=0):
+    def __init__(self, x=0, y=0, teleport=False):
         ATRV.__init__(self)
         self.properties(GroundRobot=True)
-        gps = GPS()
-        self.append(gps)
-        pose = Pose()
-        self.append(pose)
-        pose.add_interface('ros')
-        waypoint = Waypoint()
-        waypoint.properties(Speed={speedAGV})
-        self.append(waypoint)
-        gps.add_interface('socket')
-        waypoint.add_interface('socket')
+        if not teleport:
+            gps = GPS()
+            gps.add_interface('socket')
+            self.append(gps)
+            pose = Pose()
+            pose.add_interface('ros')
+            self.append(pose)
+            waypoint = Waypoint()
+            waypoint.properties(Speed={speedAGV})
+            waypoint.add_interface('socket')
+            self.append(waypoint)
+        else:
+            teleport = Teleport()
+            teleport.add_interface('ros')
+            self.append(teleport)
         self.translate(x, y, 5)
+
 {robots}
 
 # Scene
