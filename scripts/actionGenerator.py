@@ -823,10 +823,13 @@ env.create()
         <node name="$(anon bag)" pkg="rosbag" type="record" args="/hidden/repair -o hidden_repair" if="$(arg bag_repair)" />
         
         <node name="$(anon morse)" pkg="metal" type="morse_run" args="{morsePath}" if="$(arg morse)" />
-
+        <!-- node name="$(anon pose2teleport)" pkg="ismac" type="pose2teleport" args="{roboList}" if="$(arg morse)" /-->
+              
         <node name="$(anon autoStart)" pkg="metal" type="autoStart.py" ns="autoStart" if="$(arg auto_start)" />
 
-""".format(morsePath = os.path.join(pathToMission, "run_morse.py"), missionFile = pathToMission+".json" ))
+""".format(morsePath = os.path.join(pathToMission, "run_morse.py"),
+           missionFile = pathToMission+".json" ,
+           roboList = " ".join(self.getRobotList())))
 
             
             f.write("""\n\n    <group if="$(arg simu)">\n""")
