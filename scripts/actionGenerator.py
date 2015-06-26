@@ -715,9 +715,9 @@ class ProblemGenerator:
         robots = []
         for r in self.getRobotList():
             if "ressac" in r:
-                robots.append("%s = Ressac(%d, %d) #teleport=True)" % (r, self.mission["agents"][r]["position"]["x"], self.mission["agents"][r]["position"]["y"]))
+                robots.append("%s = Ressac(%d, %d) #,teleport=True)" % (r, self.mission["agents"][r]["position"]["x"], self.mission["agents"][r]["position"]["y"]))
             else:
-                robots.append("%s = AGV(%d, %d) #teleport=True)" % (r, self.mission["agents"][r]["position"]["x"], self.mission["agents"][r]["position"]["y"]))
+                robots.append("%s = AGV(%d, %d) #,teleport=True)" % (r, self.mission["agents"][r]["position"]["x"], self.mission["agents"][r]["position"]["y"]))
             
         speedAGV = 1
         if "mana" in self.mission["models"]:
@@ -779,7 +779,7 @@ env.create()
 """.format(robots="\n".join(robots), speedAGV=speedAGV, speedAAV= speedAAV, fastmode=MorseFastmode))
 
     #write in the current working directory
-    def writeRoslaunchFiles(self, pathToMission, data):
+    def writeRoslaunchFiles(self, pathToMission, data, missionName):
         pathToMission = pathToMission.replace("$ACTION_HOME", "$(env ACTION_HOME)")
 
         with open("hidden-params.launch", "w") as f:
@@ -807,10 +807,13 @@ env.create()
         <arg name="simu" default="true"/>
         <arg name="executor" default="morse+ros"/>
         <arg name="bag_repair" default="false"/>
+        <arg name="bag_all" default="true" />
         <arg name="vnet" default="false"/>
         <arg name="morse" default="false"/>
         <arg name="auto_start" default="false"/>
         <arg name="ismac" default="false" />
+
+        <node name="$(anon bag_all)" pkg="rosbag" type="record" args="-a -o $(env ACTION_HOME)/logs/{mission_name}" if="$(arg bag_all)" />
 
         <include file="hidden-params.launch" />
 
@@ -823,12 +826,13 @@ env.create()
         <node name="$(anon bag)" pkg="rosbag" type="record" args="/hidden/repair -o hidden_repair" if="$(arg bag_repair)" />
         
         <node name="$(anon morse)" pkg="metal" type="morse_run" args="{morsePath}" if="$(arg morse)" />
-        <!-- node name="$(anon pose2teleport)" pkg="ismac" type="pose2teleport" args="{roboList}" if="$(arg morse)" /-->
+        <node name="$(anon pose2teleport)" pkg="ismac" type="pose2teleport" args="{roboList}" if="$(arg morse)" />
               
         <node name="$(anon autoStart)" pkg="metal" type="autoStart.py" ns="autoStart" if="$(arg auto_start)" />
 
 """.format(morsePath = os.path.join(pathToMission, "run_morse.py"),
            missionFile = pathToMission+".json" ,
+           mission_name = missionName,
            roboList = " ".join(self.getRobotList())))
 
             
@@ -857,7 +861,7 @@ env.create()
     <arg name="auto_start" default="false"/>
     <arg name="alea_file"/>
 
-    <param name="/hidden/aleas"        type="str" textfile="$(arg alea_file)" />
+    <param name="/hidden/aleas" type="str" textfile="$(arg alea_file)" />
 
     <include file="hidden-params.launch" />
 
@@ -1037,7 +1041,7 @@ hipop --logLevel error -H {helper} -I {planInit} -P hadd_time_lifo -A areuse_mot
     with open("vnet_config.yaml", "w") as f:
         p.writeVNetFile(f)
 
-    p.writeRoslaunchFiles(pathToMission, data)
+    p.writeRoslaunchFiles(pathToMission, data, missionName)
 
     logging.info("Done")
     
