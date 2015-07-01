@@ -2,7 +2,7 @@
 #ifndef MISSION_DIALOG_H
 #define MISSION_DIALOG_H
 
-#include <QtGui>
+#include <QtWidgets>
 #include "mission_model.h"
 
 class MissionDialog: public QDialog

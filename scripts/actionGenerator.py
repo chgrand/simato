@@ -38,9 +38,6 @@ initActionLength = 30 #s
 useAAVPatrol = True
 useAGVPatrol = True
 
-
-distanceFileName = "distancemap.json"
-
 class IllFormatedInput(Exception):
     pass
 
@@ -51,7 +48,7 @@ costExploreAction = 1
 
 class ProblemGenerator:
     
-    def __init__(self, mission):
+    def __init__(self, mission, distanceFile):
     
         self.canLaunchHiPOP = True
         self.mission = mission
@@ -122,29 +119,65 @@ class ProblemGenerator:
         
         self.distanceMap = {}
 
-        self.computeDistanceAGV()
+        self.computeDistanceAGV(distanceFile)
         
         logging.info("Initialisation done")
 
 
-    def computeDistanceAGV(self):
-        if useGladysDistance:
+    def computeDistanceAGV(self, distanceFile):
+
+        recompute = False
+        if os.access(distanceFile, os.R_OK):
+            with open(distanceFile, "r") as f:
+                self.distanceMap = json.load(f)
+
+            #Check if it needs to be recomputed
+            for model in self.mission["models"].keys():
+                if not self.useGladysForModel(model): continue
+                if model not in self.distanceMap :
+                    recompute = True
+                    break
+
+                points = set()
+                for r in self.mission["agents"].values():
+                    if r["model"] == model:
+                        for pt in self.mission["wp_groups"][r["wp_group"]]["waypoints"].values():
+                            points.add((pt["x"], pt["y"]))
+                points = list(points)
+
+                for pt1,pt2 in itertools.combinations(points, 2):
+                    k1 = "%s_%s_%s_%s" % (pt1[0], pt1[1], pt2[0], pt2[1])
+                    k2 = "%s_%s_%s_%s" % (pt2[0], pt2[1], pt1[0], pt1[1])
+                    if k1 not in self.distanceMap[model] and k2 not in self.distanceMap[model]:
+                        logging.warning("Points have changed. Recomputing the distances")
+                        recompute = True
+                        break
+
+                if recompute:
+                    break
+
+        else:
+            logging.warning("Cannot find %s. Using gladys to compute the distances." % distanceFile)
+            recompute = True
+
+        if recompute:
             for model in self.mission["models"].keys():
                 if not self.useGladysForModel(model):
                     continue
                 
-                logging.info("Computing distances for %s" % model)
+                logging.info("Pre-computing distances for %s" % model)
 
                 self.distanceMap[model] = {}
                 
                 g = self.gladys[model]
                 
-                points = []
+                points = set()
                 for r in self.mission["agents"].values():
                     if r["model"] == model:
                         for pt in self.mission["wp_groups"][r["wp_group"]]["waypoints"].values():
-                            points.append((pt["x"], pt["y"]))
-                
+                            points.add((pt["x"], pt["y"]))
+                points = list(points)
+
                 for i in range(len(points)):
                     logging.debug("Using gladys for computing distance map of %s %d / %d" % (model,i,len(points)))
                     costs = g.single_source_all_costs(points[i], points[i+1:])
@@ -154,15 +187,9 @@ class ProblemGenerator:
 
                 logging.info("Computing distances for %s done" % model)
         
-            with open(distanceFileName, "w") as f:
+            with open(distanceFile, "w") as f:
                 json.dump(self.distanceMap, f)
-        else:
-            if not os.access(distanceFileName, os.R_OK):
-                logging.error("Cannot find %s. Use gladys to compute it. Aborting" % distanceFileName)
-                sys.exit(1)
-            
-            with open(distanceFileName, "r") as f:
-                self.distanceMap = json.load(f)
+
 
     def getGladysDistance(self, model, start, end):
         if not self.useGladysForModel(model):
@@ -186,6 +213,7 @@ class ProblemGenerator:
         return list(self.mission["models"].keys())
 
     def useGladysForModel(self, model):
+        return False
         return model in ["mana", "minnie", "effibot"]
 
     def getRobotList(self):
@@ -559,6 +587,12 @@ class ProblemGenerator:
 
             #move-i goes from patrol[i] to patrol[i+1]
             for i,f,t in zip(range(len(patrol)), patrol, patrol[1:]):
+
+                cost = self.computeDistance(robot, f, t)
+                if cost == 0 or cost == float("inf"):
+                    logging.error("In patrol %s, robot %s cannot go from %s to %s" % (patrolName, robot, self.getLocName(f), self.getLocName(t)))
+                    self.canLaunchHiPOP = False
+
                 m.addAction("move-%d" % i, "move %s %s %s" % (robot, self.getLocName(f), self.getLocName(t)))
                     
                 if i == 0:
@@ -674,6 +708,8 @@ class ProblemGenerator:
                     actionName1 = "communicate %s %s %s %s" % (c["agent1"], c["agent2"], self.getLocName(pt1), self.getLocName(pt2))
                     actionName2 = "communicate %s %s %s %s" % (c["agent2"], c["agent1"], self.getLocName(pt2), self.getLocName(pt1))
                     actionName3 = "communicate-meta %s %s %s %s" % (c["agent1"], c["agent2"], self.getLocName(pt1), self.getLocName(pt2))
+                    lit1 = "in-communication-at %s %s %s %s" % (c["agent1"], c["agent2"], self.getLocName(pt1), self.getLocName(pt2))
+                    lit2 = "in-communication-at %s %s %s %s" % (c["agent2"], c["agent1"], self.getLocName(pt2), self.getLocName(pt1))
 
                     result["actions"][str(actionIndex)] = {
                                                 "name":actionName1,
@@ -706,7 +742,19 @@ class ProblemGenerator:
                     #result["absolute-time"].append([nextTimepoint + 2, float(c["date"])])
                     result["absolute-time"].append([nextTimepoint + 4, float(c["date"])])
                     #result["absolute-time"].append([nextTimepoint + 5, float(c["date"]) + 0.5])
-    
+
+                    result["causal-links"].append({ "startAction" : str(actionIndex),
+                                                    "endAction" : str(actionIndex+2),
+                                                    "startTp": nextTimepoint, "endTp" : nextTimepoint + 4,
+                                                    "startTs":1,"endTs":3,
+                                                    "lit":lit1})
+
+                    result["causal-links"].append({ "startAction" : str(actionIndex+1),
+                                                    "endAction" : str(actionIndex+2),
+                                                    "startTp": nextTimepoint+2, "endTp" : nextTimepoint + 4,
+                                                    "startTs":1,"endTs":3,
+                                                    "lit":lit2})
+
                     nextTimepoint += 6
         
         return json.dumps(result)
@@ -821,7 +869,7 @@ env.create()
             <arg name="mission_file" value="{missionFile}" />
         </include>
 
-        <node name="$(anon visu)" pkg="metal" type="onlineTimeline.py" ns="visu"  if="$(arg visu)" />
+        <node name="$(anon visu)" pkg="metal" type="onlineTimeline.py" ns="visu" args="--missionFile {missionFile}" if="$(arg visu)" />
         
         <node name="$(anon bag)" pkg="rosbag" type="record" args="/hidden/repair -o hidden_repair" if="$(arg bag_repair)" />
         
@@ -865,7 +913,7 @@ env.create()
 
     <include file="hidden-params.launch" />
 
-    <node name="$(anon visu)" pkg="metal" type="onlineTimeline.py" ns="visu"  if="$(arg visu)" />
+    <node name="$(anon visu)" pkg="metal" type="onlineTimeline.py" ns="visu" args="--missionFile {missionFile}" if="$(arg visu)" />
 
     <node name="$(anon autoStart)" pkg="metal" type="autoStart.py" ns="autoStart" if="$(arg auto_start)" />
 
@@ -875,7 +923,7 @@ env.create()
     <node name="$(anon watcher)" pkg="metal" type="watcher.py" required="true" />
     
     <node name="$(anon aleas_injector)" pkg="metal" type="aleaInjector.py" />
-""")
+""".format(missionFile = pathToMission+".json"))
             for r in self.getRobotList():
                 f.write("""
     <include file="$(find metal)/launch/{robot}.launch">
@@ -900,7 +948,7 @@ def setup():
     parser = argparse.ArgumentParser(description='Create a set of plans for ACTION')
     parser.add_argument('missionFile', type=str)
     parser.add_argument('--outputFolder', type=str, default=None)
-    parser.add_argument('-g', '--noGladys' , action='store_true')
+    parser.add_argument('-g', '--forceGladys' , action='store_true')
     parser.add_argument('--noAAVPatrols', action='store_true')
     parser.add_argument('--noAGVPatrols', action='store_true')
     parser.add_argument('--force', action='store_true')
@@ -938,6 +986,8 @@ def setup():
 
     logging.info("Output folder : %s" % outputFolder) 
 
+    distanceFileName = "distancemap.json"
+
     if os.access(outputFolder, os.R_OK):
         if not args.force:
             print("Output folder already exists. Do you want to erase it ? Press enter to continue")
@@ -947,6 +997,7 @@ def setup():
                 input()
 
         for f in os.listdir(outputFolder):
+            if f == distanceFileName and not args.forceGladys: continue #if the distances are pre-computed, do not remove them
             s = os.path.join(outputFolder, f)
             if os.path.isdir(s):
                 shutil.rmtree(s)
@@ -955,21 +1006,14 @@ def setup():
     else:
         os.mkdir(outputFolder)
 
-    global useGladysDistance
-    useGladysDistance = not args.noGladys
-    if args.noGladys:
-        logging.info("Using distance file")
-        if not os.access(os.path.join(mission["home_dir"], distanceFileName), os.R_OK):
-            logging.error("Cannot access the distance file : %s" % os.path.join(outputFolder, distanceFileName))
-            logging.error("You can't pass the noGladys option")
-            useGladysDistance = True
+    distanceFile = os.path.join(outputFolder, distanceFileName)
 
     if outputFolder.endswith("/"):
         missionName = os.path.basename(os.path.split(outputFolder)[0])
     else:
         missionName = os.path.basename(outputFolder)
 
-    p = ProblemGenerator(mission)
+    p = ProblemGenerator(mission, distanceFile)
     
     os.chdir(outputFolder)
     
@@ -1031,6 +1075,7 @@ hipop --logLevel error -H {helper} -I {planInit} -P hadd_time_lifo -A areuse_mot
                 
                 actionvisu.drawPlanGeo(os.path.join(hipopFolder, data["outputName"] + ".pddl"), "plan-geo.png", missionFile=missionFile)
                 actionvisu.drawPlanTimeline(os.path.join(hipopFolder, data["outputName"] + ".pddl"), "plan-timeline.png")
+                actionvisu.drawPlanTimeline(os.path.join(hipopFolder, data["outputName"] + ".pddl"), "plan-timeline-move.png", onlyMove = True)
                 
             except ImportError:
                 logging.error("Cannot draw plans. Import actionvisu failed")

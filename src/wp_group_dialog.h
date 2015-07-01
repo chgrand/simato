@@ -2,7 +2,7 @@
 #ifndef WP_GROUP_DIALOG_H
 #define WP_GROUP_DIALOG_H
 
-#include <QtGui>
+#include <QtWidgets>
 #include "mission_model.h"
 
 class WpGroupDialog: public QDialog

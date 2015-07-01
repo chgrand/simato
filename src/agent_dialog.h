@@ -3,7 +3,7 @@
 #define AGENT_DIALOG_H
 
 
-#include <QtGui>
+#include <QtWidgets>
 #include "mission_model.h"
 
 class AgentDialog: public QDialog

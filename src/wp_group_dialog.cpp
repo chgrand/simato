@@ -65,7 +65,7 @@ void WpGroupDialog::addWpGroup(MissionModel *model)
   if(wp_name=="") return;
 
   model->wp_groups[wp_name].color = color_name->currentText().toStdString();
-  model->wp_groups[wp_name].marker = marker_char->currentText().at(0).toAscii();
+  model->wp_groups[wp_name].marker = marker_char->currentText().at(0).toLatin1();
   model->wp_groups[wp_name].waypoints.clear();
 }
 
