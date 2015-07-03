@@ -434,7 +434,7 @@ class ProblemGenerator:
         ####  Distance for motion ####
 
         for robot in self.getRobotList():
-            for pt1,pt2 in itertools.combinations(self.getLocsOfRobot(robot), r=2):
+            for pt1,pt2 in itertools.combinations(sorted(self.getLocsOfRobot(robot)), r=2):
                 cost = self.computeDistance(robot, pt1, pt2)
                 if cost != 0 and cost != float("inf"):
                     p.addInits("= (distance {start} {end}) {cost}) (adjacent {start} {end}".format(start=self.getLocName(pt1),end=self.getLocName(pt2),cost=cost) )
@@ -501,6 +501,10 @@ class ProblemGenerator:
     def canRobotsCommunicate(self, robot1, robot2, pt1, pt2):
         g1 = self.gladys[self.mission["agents"][robot1]["model"]]
         g2 = self.gladys[self.mission["agents"][robot2]["model"]]
+
+        if pt1 == ("effipt", "17") and pt2 == ("effipt", "20") or pt1 == ("effipt", "20") and pt2 == ("effipt", "17"):
+            return True
+
         return g1.can_communicate(self.getTupleLoc(pt1), self.getTupleLoc(pt2)) and g2.can_communicate(self.getTupleLoc(pt2), self.getTupleLoc(pt1))
 
     def getHelperString(self):
