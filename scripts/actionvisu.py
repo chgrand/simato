@@ -108,9 +108,14 @@ def drawPlanGeo(filename, outputFile = None, missionFile=None):
             paths[robot].append(end)
             
         elif d["type"] == "communicate-meta":
-            plt.arrow(start[0], start[1], end[0] - start[0], end[1] - start[1], color="cyan", length_includes_head=True)
+            start = d["start1"]
+            end = d["start2"]
+            if start[0] != start[1] and end[0] - start[0] != end[1] - start[1]:
+                plt.arrow(start[0], start[1], end[0] - start[0], end[1] - start[1], color="cyan", length_includes_head=True)
         
         elif d["type"] == "observe":
+            start = d["start"]
+            end = d["end"]
             plt.arrow(start[0], start[1], end[0] - start[0], end[1] - start[1], color="yellow", length_includes_head=True)
             
 
