@@ -822,7 +822,7 @@ class AGV(ATRV):
             teleport = Teleport()
             teleport.add_interface('ros')
             self.append(teleport)
-        self.translate(x, y, 5)
+        self.translate(x, y, 10)
 
 {robots}
 
