@@ -122,7 +122,7 @@ bool MissionModel::read_json(std::string filename)
       for(auto model : models_entry.get()) {
         mission::model_t a_model;
         a_model.config_file = model.second.get<std::string>("config_file", "");
-        a_model.region_map = model.second.get<std::string>("region_map", "");
+        a_model.region_file = model.second.get<std::string>("region_file", "");
         models[model.first] = a_model;
       }
     }
@@ -286,8 +286,8 @@ bool MissionModel::write_json(std::string filename)
     for(auto model : models) {
       boost::property_tree::ptree model_entry;
       model_entry.put("config_file", model.second.config_file);
-      if(model.second.region_map != "")
-        model_entry.put("region_map", model.second.region_map);
+      if(model.second.region_file != "")
+        model_entry.put("region_file", model.second.region_file);
       models_dict.push_back(std::make_pair(model.first, model_entry));
     }
     p_mission.push_back(std::make_pair("models", models_dict));

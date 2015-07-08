@@ -78,6 +78,8 @@ class ProblemGenerator:
         for name,model in self.mission["models"].items():
             
             regionFile = os.path.join(homeDir, str(self.mission["map_data"]["region_file"]))
+            if "region_file" in model:
+                regionFile = os.path.join(homeDir, str(model["region_file"]))
             if not os.path.exists(regionFile):
                 logging.error("Cannot open %s" % regionFile)
                 sys.exit(1)
