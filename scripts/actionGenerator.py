@@ -55,6 +55,17 @@ class ProblemGenerator:
             
         ##Convert all data to numeric format
         for agent in self.mission["agents"].keys():
+            if "spare" in self.mission["agents"][agent]:
+                if self.mission["agents"][agent]["spare"] in ["false", "False"]:
+                    self.mission["agents"][agent]["spare"] = False
+                elif self.mission["agents"][agent]["spare"] in ["true", "True"]:
+                    self.mission["agents"][agent]["spare"] = True
+                else:
+                    logging.error("Cannot convert %s to boolean" % self.mission["agents"][agent]["spare"])
+                    sys.exit(1)
+            else:
+                self.mission["agents"][agent]["spare"] = False
+
             for k,v in self.mission["agents"][agent]["position"].items():
                 self.mission["agents"][agent]["position"][k] = float(v)
                 
@@ -657,7 +668,7 @@ class ProblemGenerator:
         
         #add init action
         for robot in self.getRobotList():
-            if robot in []:
+            if self.mission["agents"][robot]["spare"] or robot in []:
                 logging.info("Adding an init action for %s" % robot)
                 
                 actionIndex = str(len(result["actions"]))
@@ -667,7 +678,8 @@ class ProblemGenerator:
                                   "endTp": nextTimepoint + 1,
                                   "dMin": float(initActionLength),
                                   "dMax": float(initActionLength),
-                                  "locked": True
+                                  "locked": True,
+                                  "agent":robot
                                   }
                 result["absolute-time"].append([nextTimepoint, 0.1])
                 nextTimepoint += 2
@@ -770,6 +782,26 @@ class ProblemGenerator:
         
         return json.dumps(result)
     
+    def writeHiPOPLaunchFile(self, f, data):
+        nonSpareAgents = [agent for agent in self.mission["agents"] if not self.mission["agents"][agent].get("spare", False)]
+        spareAgents = [agent for agent in self.mission["agents"] if self.mission["agents"][agent].get("spare", False)]
+
+        logging.info("There is %d robots with %s additional spare robots" % (len(nonSpareAgents), len(spareAgents)))
+        
+        f.write("""#! /usr/bin/env bash
+    DIR=$( cd "$( dirname "${{BASH_SOURCE[0]}}" )" && pwd )
+    cd $DIR
+    
+    hipop --logLevel error -H {helper} -I {planInit} --agents {agentList} -P hadd_time_lifo -A areuse_motion_nocostmotion -F local_openEarliestMostCostFirst_motionLast -O {output}.pddl -o {output}.plan {domain} {prb}
+    """.format(domain=data["domainFile"], 
+               prb=data["prbFile"], 
+               helper=data["helperFile"], 
+               planInit=data["planInitFile"], 
+               output=data["outputName"],
+               agentList = "_".join(nonSpareAgents)))
+
+        os.chmod(f.name, 0o755)
+
     def writeMorseFile(self, f):
         robots = []
         for r in self.getRobotList():
@@ -1067,14 +1099,7 @@ def main():
     data["planFile"] = missionName + ".plan"
 
     with open(os.path.join(hipopFolder, "launch-example.sh"), "w") as f:
-        f.write("""#! /usr/bin/env bash
-DIR=$( cd "$( dirname "${{BASH_SOURCE[0]}}" )" && pwd )
-cd $DIR
-
-hipop --logLevel error -H {helper} -I {planInit} -P hadd_time_lifo -A areuse_motion_nocostmotion -F local_openEarliestMostCostFirst_motionLast -O {output}.pddl -o {output}.plan {domain} {prb}
-""".format(domain=data["domainFile"], prb=data["prbFile"], helper=data["helperFile"], planInit=data["planInitFile"], output=data["outputName"]))
-    os.chmod(os.path.join(hipopFolder, "launch-example.sh"), 0o755)
-
+        p.writeHiPOPLaunchFile(f, data)
 
     if p.canLaunchHiPOP:
         logging.info("Launching HiPOP")
