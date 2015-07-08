@@ -780,6 +780,9 @@ class ProblemGenerator:
         if "mana" in self.mission["models"]:
             speedAGV = self.mission["models"]["mana"]["robot"]["velocity"]
     
+        s = os.path.expandvars("$ACTION_HOME")
+        morseFilepath = os.path.join(self.mission["home_dir"].replace(s, "$ACTION_HOME"), self.mission["map_data"]["blender_file"])
+
         f.write("""from morse.builder import *
 import os
 
@@ -827,13 +830,13 @@ class AGV(ATRV):
 {robots}
 
 # Scene
-env = Environment(os.path.expandvars("$ACTION_HOME/ressources/models/maps/caylus50.blend"), fastmode={fastmode})
+env = Environment(os.path.expandvars("{morseFilepath}"), fastmode={fastmode})
 env.set_camera_clip(clip_end=1000)
 env.aim_camera([0.4, 0, -0.7854])
 env.place_camera([138, -150, 100])
 env.set_camera_speed(100)
 env.create()
-""".format(robots="\n".join(robots), speedAGV=speedAGV, speedAAV= speedAAV, fastmode=MorseFastmode))
+""".format(robots="\n".join(robots), speedAGV=speedAGV, speedAAV= speedAAV, fastmode=MorseFastmode, morseFilepath=morseFilepath))
 
     #write in the current working directory
     def writeRoslaunchFiles(self, pathToMission, data, missionName):
