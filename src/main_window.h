@@ -10,10 +10,10 @@
 
 class MainWindow: public QMainWindow
 {
-  Q_OBJECT
-  
+Q_OBJECT
+
 public:
-  MainWindow(MissionData *data, QWidget *parent=0);
+  MainWindow(MissionData *data, QWidget *parent = 0);
 
   void loadFile(const QString&);
 
@@ -29,14 +29,14 @@ private slots:
   void waypointsAdd();
   void waypointsMove();
   void waypointsDelete();
- 
+
   void patrolAdd();
 
   //void agentAdd();
   void agentEdit();
   //void agentDelete();
   void agentZone();
-  
+
   void observationPointsAdd();
   void observationPointsMove();
   void observationPointsDelete();
@@ -48,7 +48,7 @@ protected:
   void createMenu();
   bool tryEraseExistingMission();
 
- private:
+private:
   //MissionData *mission_data;
   bool mission_exist;
   QString filename;

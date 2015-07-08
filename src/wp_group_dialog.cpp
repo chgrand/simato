@@ -2,17 +2,15 @@
 #include "colors.h"
 #include "wp_group_dialog.h"
 
-
-
 //-----------------------------------------------------------------------------
-WpGroupDialog::WpGroupDialog(QWidget *parent, int mode):
-  QDialog(parent)
+WpGroupDialog::WpGroupDialog(QWidget *parent, int mode) :
+    QDialog(parent)
 {
   name = new QLineEdit();
 
   color_name = new QComboBox();
   color_name->setInsertPolicy(QComboBox::InsertAtBottom);
-  for(auto & color_item: ColorMap::OrderedList)
+  for(auto & color_item : ColorMap::OrderedList)
     color_name->addItem(QString::fromStdString(color_item));
 
   marker_char = new QComboBox();
@@ -22,7 +20,7 @@ WpGroupDialog::WpGroupDialog(QWidget *parent, int mode):
   marker_char->addItem("*");
 
   QFormLayout *layout = new QFormLayout;
-  if(mode==WpGroupDialog::NEW)
+  if(mode == WpGroupDialog::NEW)
     layout->addRow(tr("Name:"), name);
   layout->addRow(tr("Color:"), color_name);
   layout->addRow(tr("Marker:"), marker_char);
@@ -41,32 +39,31 @@ WpGroupDialog::WpGroupDialog(QWidget *parent, int mode):
   mainLayout->addWidget(buttonBox);
   setLayout(mainLayout);
 
-  if(mode==WpGroupDialog::NEW)
+  if(mode == WpGroupDialog::NEW)
     setWindowTitle(tr("New waypoints group"));
   //setMinimumWidth(480);
   //setMinimumHeight(280);
   setModal(true);
 }
 
-
 /*
-//-----------------------------------------------------------------------------
-void WpGroupDialog::initData(MissionModel *model)
-{ 
-  for(auto& color_item : ColorMap::CMap)
-    color->addItem(QString::fromStdString(color_item.first));
-}
-*/
+ //-----------------------------------------------------------------------------
+ void WpGroupDialog::initData(MissionModel *model)
+ {
+ for(auto& color_item : ColorMap::CMap)
+ color->addItem(QString::fromStdString(color_item.first));
+ }
+ */
 
 //-----------------------------------------------------------------------------
 void WpGroupDialog::addWpGroup(MissionModel *model)
 {
   std::string wp_name = name->text().toStdString();
-  if(wp_name=="") return;
+  if(wp_name == "")
+    return;
 
   model->wp_groups[wp_name].color = color_name->currentText().toStdString();
   model->wp_groups[wp_name].marker = marker_char->currentText().at(0).toLatin1();
   model->wp_groups[wp_name].waypoints.clear();
 }
-
 

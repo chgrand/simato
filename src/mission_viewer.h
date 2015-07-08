@@ -10,24 +10,26 @@
 
 class MissionViewer: public QWidget
 {
-  Q_OBJECT
- 
+Q_OBJECT
+
 public:
-  MissionViewer(MissionModel *model, QWidget *parent=0);
+  MissionViewer(MissionModel *model, QWidget *parent = 0);
   void updateMap();
-  MapViewer *getMapViewer() const {return map_viewer;};
+  MapViewer *getMapViewer() const
+  {
+    return map_viewer;
+  }
+  ;
   void updateControl();
   void setFilter(std::string name);
 
-			       
 private slots:
   void onMouseOverMap(QPointF pos);
-  
+
 private:
   MissionModel *mission_model;
   MapViewer *map_viewer;
-  QLabel    *pos_msg;
-
+  QLabel *pos_msg;
 
   QCheckBox *map_view_check;
   QCheckBox *grid_view_check;

@@ -8,19 +8,16 @@ class MissionData
 public:
   QString filename;
   bool exist;
-  MissionModel *model; 
+  MissionModel *model;
 
-  MissionData(): 
-    filename(""), exist(false) 
-  {};
+  MissionData() : filename(""), exist(false), model(nullptr){};
 
-  ~MissionData() 
+  ~MissionData()
   {
     if(exist)
       delete model;
   }
 
-  
 };
 
 #endif

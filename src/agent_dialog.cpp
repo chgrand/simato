@@ -7,23 +7,23 @@
 #include "agent_dialog.h"
 
 //-----------------------------------------------------------------------------
-AgentDialog::AgentDialog(QWidget *parent):
-  QDialog(parent)
+AgentDialog::AgentDialog(QWidget *parent) :
+    QDialog(parent)
 {
   agent_name = new QComboBox();
   agent_name->setEditable(true);
   agent_name->setInsertPolicy(QComboBox::InsertAlphabetically);
-  
+
   model_edit = new QLineEdit();
   //model_edit->setMaximumWidth(80);
-  model_btn  = new QPushButton("Select");
-  QHBoxLayout *model_layout=new QHBoxLayout;
+  model_btn = new QPushButton("Select");
+  QHBoxLayout *model_layout = new QHBoxLayout;
   model_layout->addWidget(model_edit);
   model_layout->addWidget(model_btn);
-  
+
   color_name = new QComboBox();
   color_name->setInsertPolicy(QComboBox::InsertAtBottom);
-  for(auto & color_item: ColorMap::OrderedList)
+  for(auto & color_item : ColorMap::OrderedList)
     color_name->addItem(QString::fromStdString(color_item));
 
   marker = new QComboBox();
@@ -32,8 +32,7 @@ AgentDialog::AgentDialog(QWidget *parent):
   marker->addItem("O");
   marker->addItem("*");
 
-
-   // Dialog exit button
+  // Dialog exit button
   QDialogButtonBox *buttonBox = new QDialogButtonBox;
   buttonBox->addButton(tr("Confirm"), QDialogButtonBox::AcceptRole);
   buttonBox->addButton(tr("Cancel"), QDialogButtonBox::RejectRole);
@@ -42,8 +41,6 @@ AgentDialog::AgentDialog(QWidget *parent):
   connect(buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
   connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
 
-
-  
   QFormLayout *layout = new QFormLayout;
   layout->addRow(tr("Name:"), agent_name);
   layout->addRow(tr("Model:"), model_layout);
@@ -78,24 +75,23 @@ void AgentDialog::initData(MissionModel *mission_model)
   // }
 
   for(auto& agent_item : model->agents) {
-    std::cout << agent_item.first << std::endl; 
+    std::cout << agent_item.first << std::endl;
     agent_name->addItem(QString::fromStdString(agent_item.first));
   }
 
   /*
-  std::map<std::string,mission::agent_t>::const_iterator 
-    mit (model->agents.begin()), 
-    mend(model->agents.end()); 
-  for(;mit!=mend;++mit) {
-    std::cout << mit->first << std::endl; 
-    agent_name->addItem(QString::fromStdString(mit->first));
-  } 
-  */ 
+   std::map<std::string,mission::agent_t>::const_iterator
+   mit (model->agents.begin()),
+   mend(model->agents.end());
+   for(;mit!=mend;++mit) {
+   std::cout << mit->first << std::endl;
+   agent_name->addItem(QString::fromStdString(mit->first));
+   }
+   */
 }
 
 //-----------------------------------------------------------------------------
 void AgentDialog::storeData(MissionModel *mission_model)
 {
-  
 
 }

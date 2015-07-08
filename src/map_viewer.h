@@ -6,12 +6,13 @@
 #include <vector>
 #include "mission_model.h"
 
-class MapViewer : public QWidget
+class MapViewer: public QWidget
 {
-  Q_OBJECT
+Q_OBJECT
 
-public:  
-  enum action_type_t { 
+public:
+  enum action_type_t
+  {
     Add_Waypoints,
     Move_Waypoints,
     Delete_Waypoints,
@@ -20,11 +21,14 @@ public:
     Observations_Add,
     Observations_Move,
     Observations_Delete,
-    None };
-  
-private:
-  enum action_state_t { Start, Run, Stop };
+    None
+  };
 
+private:
+  enum action_state_t
+  {
+    Start, Run, Stop
+  };
 
 public:
   MapViewer(MissionModel *model, QWidget *parent = 0);
@@ -38,7 +42,7 @@ public:
   //void setOrigin(double x, double y);
   //void setScaleFactor(double xscale, double yscale);
   //void setZoom(double x1, double y1, double x2, double y2);
-  
+
   // Mission data
   //void setMissionData(MissionModel *mission_model);
 
@@ -46,7 +50,7 @@ public:
 
 signals:
   void mouseNewPosition(QPointF pos);
-				    
+
 public slots:
   void setAlpha(int value);
   void setMapView(int state);
@@ -58,22 +62,22 @@ public slots:
 protected:
   void plotMarker(QPainter &painter, QPoint pos, char mark, int size);
   void paintEvent(QPaintEvent *event);
-  void resizeEvent ( QResizeEvent * event );
-  
+  void resizeEvent(QResizeEvent * event);
+
   // mouse callback used
   void mousePressEvent(QMouseEvent *event);
   void mouseReleaseEvent(QMouseEvent * event);
   void mouseMoveEvent(QMouseEvent *event);
-  void wheelEvent ( QWheelEvent * event );
-  
+  void wheelEvent(QWheelEvent * event);
+
   // utility function
-  void findPoint ( QPoint vp_pos);//, std::string &group, std::string &index);
-  void findPoint ( QPoint vp_pos, std::string group_name);
-  void movePoint ( QPoint new_vp_pos);
+  void findPoint(QPoint vp_pos);  //, std::string &group, std::string &index);
+  void findPoint(QPoint vp_pos, std::string group_name);
+  void movePoint(QPoint new_vp_pos);
 
   void findObsPoint(QPoint vp_pos);
-  void moveObsPoint( QPoint new_vp_pos);
-  
+  void moveObsPoint(QPoint new_vp_pos);
+
   QPoint mapPixelPosFromViewport(const QPoint &pos_vp_px);
   QPointF mapMeterPosFromViewport(const QPoint &pos_vp_px);
   QPoint vpPosFromMapMeter(const QPointF &pos_map_m);
@@ -82,14 +86,14 @@ protected:
   std::vector<QPointF> points_list;
 
   // Map data properties
-  bool    map_exist;
-  QImage  *map_image;       // Pixmap of the mission map
-  QSizeF  map_size_m;      // Map size in meters
+  bool map_exist;
+  QImage *map_image;       // Pixmap of the mission map
+  QSizeF map_size_m;      // Map size in meters
   QPointF map_origin_m;    // Coordinate of top-left corner in meters
   qreal opacity_;          // Map drawing opacity value
   //float origin_longitude;
   //float origin_latitude;
-  
+
   // Viewport properties
   QPoint viewport_origin_px;  // Origin of viewport windows in the map (in pixels)
   float map_scale_factor;     // From map_pixel to map_meters
@@ -103,10 +107,9 @@ protected:
   // Mission data and actions
   MissionModel *mission_model;
 
-
-  action_type_t  action_type;
+  action_type_t action_type;
   action_state_t action_state;
-  std::string  action_object;
+  std::string action_object;
   //int action_counter;
 
   int marker_width;
@@ -123,7 +126,7 @@ protected:
 
   //std::vector<QPoint> edited_zone;
   QPointF current_map_point;
-  QPoint  current_point;
+  QPoint current_point;
 
   std::string selected_point_group;
   std::string selected_point_index;
