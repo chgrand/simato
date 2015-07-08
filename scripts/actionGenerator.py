@@ -501,11 +501,16 @@ class ProblemGenerator:
     def canRobotsCommunicate(self, robot1, robot2, pt1, pt2):
         g1 = self.gladys[self.mission["agents"][robot1]["model"]]
         g2 = self.gladys[self.mission["agents"][robot2]["model"]]
+        antennaHeight1 = self.mission["models"][self.mission["agents"][robot1]["model"]]["antenna"]["pose"]["z"]
+        antennaHeight2 = self.mission["models"][self.mission["agents"][robot2]["model"]]["antenna"]["pose"]["z"]
 
-        if pt1 == ("effipt", "17") and pt2 == ("effipt", "20") or pt1 == ("effipt", "20") and pt2 == ("effipt", "17"):
-            return True
+        p = self.getTupleLoc(pt1)
+        posAntenna1 = (p[0], p[1], p[2] + antennaHeight1)
 
-        return g1.can_communicate(self.getTupleLoc(pt1), self.getTupleLoc(pt2)) and g2.can_communicate(self.getTupleLoc(pt2), self.getTupleLoc(pt1))
+        p = self.getTupleLoc(pt2)
+        posAntenna2 = (p[0], p[1], p[2] + antennaHeight2)
+
+        return g1.can_communicate(self.getTupleLoc(pt1), posAntenna2) and g2.can_communicate(self.getTupleLoc(pt2), posAntenna1)
 
     def getHelperString(self):
 
