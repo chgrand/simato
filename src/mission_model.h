@@ -65,6 +65,7 @@ namespace mission
   typedef struct
   {
     string config_file;
+    string region_map;
   } model_t;
 
   typedef struct
