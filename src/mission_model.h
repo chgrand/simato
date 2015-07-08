@@ -59,6 +59,7 @@ namespace mission
     std::string wp_group_name;
     std::vector<point3_t> safety_zone;
     std::vector<int> autorized_comm;
+    bool spare;
   } agent_t;
 
   typedef struct

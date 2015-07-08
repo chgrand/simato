@@ -106,6 +106,8 @@ bool MissionModel::read_json(std::string filename)
         else {
           std::cout << "[WARNING] No safety zone for agent" << agent.first << std::endl;
         }
+        an_agent.spare = agent.second.get<bool>("spare", false);
+
         agents[agent.first] = an_agent;
       }
     }
@@ -269,6 +271,8 @@ bool MissionModel::write_json(std::string filename)
         }
         pt_agent.push_back(std::make_pair("safety_zone", pt_zone));
       }
+
+      pt_agent.put("spare", agent.second.spare);
 
       // TODO : authorized_comm
 
