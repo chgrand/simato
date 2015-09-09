@@ -902,7 +902,7 @@ env.create()
         <arg name="executor" default="morse+ros"/>
         <arg name="bag_repair" default="false"/>
         <arg name="bag_all" default="true" />
-        <arg name="vnet" default="false"/>
+        <arg name="vnet" default="true"/>
         <arg name="morse" default="false"/>
         <arg name="auto_start" default="false"/>
         <arg name="ismac" default="false" />
