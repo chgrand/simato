@@ -898,6 +898,8 @@ env.create()
             f.write("<launch>\n")
 
             f.write("""
+        <include file="$(find metal)/launch/machines.launch"/>
+
         <arg name="visu" default="true"/>
         <arg name="simu" default="true"/>
         <arg name="executor" default="morse+ros"/>
@@ -907,6 +909,7 @@ env.create()
         <arg name="morse" default="false"/>
         <arg name="auto_start" default="false"/>
         <arg name="ismac" default="false" />
+        <arg name="machine_multi" default="localhost"/>
 
         <node name="$(anon bag_all)" pkg="rosbag" type="record" args="-a -o $(env ACTION_HOME)/logs/{mission_name}" if="$(arg bag_all)" />
 
@@ -922,7 +925,9 @@ env.create()
         
         <node name="$(anon morse)" pkg="metal" type="morse_run" args="{morsePath}" if="$(arg morse)" />
         <node name="$(anon pose2teleport)" pkg="ismac" type="pose2teleport" args="{roboList}" if="$(arg morse)" />
-              
+
+        <node name="vnet" pkg="vnet" type="vnet_ros.py" if="$(arg vnet)"/>
+
         <node name="$(anon autoStart)" pkg="metal" type="autoStart.py" ns="autoStart" if="$(arg auto_start)" />
 
 """.format(morsePath = os.path.join(pathToMission, "run_morse.py"),
@@ -938,11 +943,11 @@ env.create()
         <include file="$(find metal)/launch/{robot}.launch">
             <arg name="executor" value="$(arg executor)" />
             <arg name="vnet" value="$(arg vnet)" />
+            <arg name="machine" value="$(arg machine_multi)" />
         </include>
 """.format(robot=r))
             f.write("""    </group>\n""")
 
-            f.write("""        <node name="vnet" pkg="vnet" type="vnet_ros.py" if="$(arg vnet)"/>\n""")
             f.write("</launch>\n")
 
         with open("stats_simu.launch", "w") as f:
