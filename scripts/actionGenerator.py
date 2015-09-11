@@ -884,6 +884,7 @@ env.create()
     <param name="hidden/pddl/prb"    type="str" textfile="{prb}" />
     <param name="hidden/pddl/helper" type="str" textfile="{helper}" />
 
+    <rosparam command="delete" param="vnet/config" />
     <rosparam command="load" param="vnet/config" file="{vnet}" />
 </launch>
 """.format(plan  =os.path.join(pathToMission, "hipop-files/" + data["planFile"]),
