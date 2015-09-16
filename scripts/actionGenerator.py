@@ -681,7 +681,7 @@ class ProblemGenerator:
                                   "locked": True,
                                   "agent":robot
                                   }
-                result["absolute-time"].append([nextTimepoint, 0.1])
+                #result["absolute-time"].append([nextTimepoint, 0.1])
                 nextTimepoint += 2
         
         if "communication_goals" in self.mission["mission_goal"]:
@@ -908,7 +908,7 @@ env.create()
         <arg name="vnet" default="true"/>
         <arg name="morse" default="false"/>
         <arg name="auto_start" default="false"/>
-        <arg name="ismac" default="false" />
+        <arg name="ismac" default="true" />
         <arg name="machine_multi" default="localhost"/>
 
         <node name="$(anon bag_all)" pkg="rosbag" type="record" args="-a -o $(env ACTION_HOME)/logs/{mission_name}" if="$(arg bag_all)" />
