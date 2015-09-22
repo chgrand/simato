@@ -962,6 +962,7 @@ env.create()
     <arg name="alea_file"/>
 
     <param name="/hidden/aleas" type="str" textfile="$(arg alea_file)" />
+    <param name="/hidden/ubForCom" value="30" />
 
     <include file="hidden-params.launch" />
 
@@ -970,7 +971,7 @@ env.create()
     <node name="$(anon autoStart)" pkg="metal" type="autoStart.py" ns="autoStart" if="$(arg auto_start)" />
 
     <node name="$(anon bag)" pkg="rosbag" type="record" args="/hidden/repair -o hidden_repair" if="$(arg bag_repair)" />
-    <node name="$(anon bag)" pkg="rosbag" type="record" args="/hidden/stats /hidden/stnvisu /hidden/start /hidden/repair /hidden/mastnUpdate /hidden/communicate -O $(optenv ROS_LOG_DIR ~/.ros)/stats.bag" />
+    <node name="$(anon bag)" pkg="rosbag" type="record" args="--all -O $(optenv ROS_LOG_DIR ~/.ros)/stats.bag" />
     
     <node name="$(anon watcher)" pkg="metal" type="watcher.py" required="true" />
     
