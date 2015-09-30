@@ -360,7 +360,7 @@ class ProblemGenerator:
         a.addParameter("?r1 ?r2", "robot")
         a.addParameter("?l1 ?l2", "loc-wp")
         a.addAgent("?r1")
-        a.setDuration(1)
+        a.setDuration(0.05)
         a.addPrecs(["robot-allowed ?r1 ?l1", "over all"], ["robot-allowed ?r2 ?l2", "over all"], ["not (= ?r1 ?r2)", "over all"],  ["visible-com ?r1 ?r2 ?l1 ?l2", "over all"])
         a.addPrecs(["at-r ?r1 ?l1", "over all"]) # no need to add ["at-r ?r2 ?l2", "over all"] since this is not the responsability of r1
         a.addEffs(["in-communication-at ?r1 ?r2 ?l1 ?l2", "at start"], ["not (in-communication-at ?r1 ?r2 ?l1 ?l2)", "at end"])
@@ -374,7 +374,7 @@ class ProblemGenerator:
         a.addParameter("?r1 ?r2", "robot")
         a.addParameter("?l1 ?l2", "loc-wp")
         a.addAgent("?r1") #need to assign it to someone
-        a.setDuration(0.5)
+        a.setDuration(0.01) #Need to be a real dMin
         a.addPrecs(["robot-allowed ?r1 ?l1", "over all"], ["robot-allowed ?r2 ?l2", "over all"], ["not (= ?r1 ?r2)", "over all"],  ["visible-com ?r1 ?r2 ?l1 ?l2", "over all"])
         a.addPrecs(["in-communication-at ?r1 ?r2 ?l1 ?l2", "over all"], ["in-communication-at ?r2 ?r1 ?l2 ?l1", "over all"])
         a.addEffs(["in-communication ?r1 ?r2", "at start"], ["in-communication ?r2 ?r1", "at start"])
