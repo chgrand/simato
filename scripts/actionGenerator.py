@@ -963,6 +963,7 @@ env.create()
 
     <param name="/hidden/aleas" type="str" textfile="$(arg alea_file)" />
     <param name="/hidden/ubForCom" value="30" />
+    <param name="/hidden/ubForTrack" value="30" />
 
     <include file="hidden-params.launch" />
 
