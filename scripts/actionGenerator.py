@@ -903,7 +903,6 @@ env.create()
         <arg name="visu" default="true"/>
         <arg name="simu" default="true"/>
         <arg name="executor" default="morse+ros"/>
-        <arg name="bag_repair" default="false"/>
         <arg name="bag_all" default="true" />
         <arg name="vnet" default="true"/>
         <arg name="morse" default="false"/>
@@ -911,7 +910,7 @@ env.create()
         <arg name="ismac" default="true" />
         <arg name="machine_multi" default="localhost"/>
 
-        <node name="$(anon bag_all)" pkg="rosbag" type="record" args="-a -o $(env ACTION_HOME)/logs/{mission_name}" if="$(arg bag_all)" />
+        <node name="$(anon bag_all)" pkg="rosbag" type="record" args="-e '(.*)hidden(.*)|/vnet/(.*)|/(.*)/pose' -o $(env ACTION_HOME)/logs/{mission_name}" if="$(arg bag_all)" />
 
         <include file="hidden-params.launch" />
 
@@ -920,8 +919,6 @@ env.create()
         </include>
 
         <node name="$(anon visu)" pkg="metal" type="onlineTimeline.py" ns="visu" args="--missionFile {missionFile}" if="$(arg visu)" />
-        
-        <node name="$(anon bag)" pkg="rosbag" type="record" args="/hidden/repair -o hidden_repair" if="$(arg bag_repair)" />
         
         <node name="$(anon morse)" pkg="metal" type="morse_run" args="{morsePath}" if="$(arg morse)" />
         <node name="$(anon pose2teleport)" pkg="ismac" type="pose2teleport" args="{roboList}" if="$(arg morse)" />
@@ -956,7 +953,6 @@ env.create()
             f.write("""
     <arg name="visu" default="false"/>
     <arg name="executor" default="ros"/>
-    <arg name="bag_repair" default="false"/>
     <arg name="vnet" default="false"/>
     <arg name="auto_start" default="false"/>
     <arg name="alea_file"/>
@@ -971,8 +967,7 @@ env.create()
 
     <node name="$(anon autoStart)" pkg="metal" type="autoStart.py" ns="autoStart" if="$(arg auto_start)" />
 
-    <node name="$(anon bag)" pkg="rosbag" type="record" args="/hidden/repair -o hidden_repair" if="$(arg bag_repair)" />
-    <node name="$(anon bag)" pkg="rosbag" type="record" args="--all -O $(optenv ROS_LOG_DIR ~/.ros)/stats.bag" />
+    <node name="$(anon bag)" pkg="rosbag" type="record" args="-e '(.*)hidden(.*)|/vnet/(.*)|/(.*)/pose' -O $(optenv ROS_LOG_DIR ~/.ros)/stats.bag" />
     
     <node name="$(anon watcher)" pkg="metal" type="watcher.py" required="true" />
     
