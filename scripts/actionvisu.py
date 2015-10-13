@@ -304,7 +304,7 @@ def drawPlanTime(filename, outputFile = None, missionFile=None):
     plt.legend(loc="upper center", bbox_to_anchor=(0.5, 1.15), fancybox=True, shadow=True, ncol=3)
 
     if outputFile is not None:
-        ani.save(outputFile, writer="mencoder")
+        ani.save(outputFile, writer="ffmpeg")
 
 def main(argv):
 
