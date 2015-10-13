@@ -77,6 +77,8 @@ class ProblemGenerator:
         for obs in self.mission["mission_goal"]["observation_points"].keys():
             for k,v in self.mission["mission_goal"]["observation_points"][obs].items():
                 self.mission["mission_goal"]["observation_points"][obs][k] = float(v)
+        if self.mission["mission_goal"]["communication_goals"] == "":
+            self.mission["mission_goal"]["communication_goals"] = {} #Boost::property_tree replace {} with ""
 
         ##
     
@@ -953,8 +955,8 @@ env.create()
             f.write("""
     <arg name="visu" default="false"/>
     <arg name="executor" default="ros"/>
-    <arg name="vnet" default="false"/>
-    <arg name="auto_start" default="false"/>
+    <arg name="vnet" default="true"/>
+    <arg name="auto_start" default="true"/>
     <arg name="alea_file"/>
 
     <param name="/hidden/aleas" type="str" textfile="$(arg alea_file)" />
