@@ -72,6 +72,18 @@ bool MissionModel::read_json(std::string filename)
 
     // TODO mission_zone
 
+    // read targets data
+    // ----------------
+    boost::optional<boost::property_tree::ptree&> targets_child = main_tree.get_child_optional("targets");
+
+    if(targets_child) {
+      for(auto target : targets_child.get()) {
+        mission::target_t a_target;
+        a_target.color = target.second.get<std::string>("color", "red");
+        targets[target.first] = a_target;
+      }
+    }
+
     // read agents data
     // ----------------
     boost::optional<boost::property_tree::ptree&> agents_child = main_tree.get_child_optional("agents");
@@ -241,6 +253,16 @@ bool MissionModel::write_json(std::string filename)
     p_mission.put("home_dir", home_dir);
     p_mission.push_back(std::make_pair("map_data", p_map_data));
 
+    // write target properties
+
+    boost::property_tree::ptree pt_targets;
+    for(auto target : this->targets) {
+      boost::property_tree::ptree pt_target;
+      std::string target_name = target.first;
+      pt_target.put("color", target.second.color);
+      pt_targets.push_back(std::make_pair(target_name, pt_target));
+    }
+    p_mission.push_back(std::make_pair("targets", pt_targets));
     // write agents properties
     // ------------------------------
     boost::property_tree::ptree pt_agents;

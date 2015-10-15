@@ -41,6 +41,11 @@ namespace mission
 
   typedef struct
   {
+    string color;
+  } target_t;
+
+  typedef struct
+  {
     string type;
     double velocity;
     instrument_t sensor;
@@ -106,6 +111,7 @@ public:
   double max_time;
   mission::map_data_t map_data;
   std::map<std::string, mission::model_t> models;
+  std::map<std::string, mission::target_t> targets;
   std::map<std::string, mission::agent_t> agents;
   std::map<std::string, mission::wp_group_t> wp_groups;
   std::map<std::string, mission::point3_t> observations;
