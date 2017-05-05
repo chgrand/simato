@@ -4,7 +4,8 @@ include("CMakeLists.local.txt" OPTIONAL)
 
 PROJECT(simato)
 
-option(INSTALL_SCRIPTS "Set to ON to also install the scripts" ON)
+
+option(PYTHON "Set to ON to also install the python scripts" ON)
 set(PYTHON_VERSION "2.7" CACHE STRING "Python version. Default is 2.7")
 
 ADD_DEFINITIONS(-std=c++11)
@@ -12,11 +13,14 @@ ADD_DEFINITIONS(-std=c++11)
 # QT5 configuration
 FIND_PACKAGE(Qt5Widgets REQUIRED)
 
-FIND_PACKAGE(Boost COMPONENTS python3 REQUIRED)
+IF(INSTALL_SCRIPTS)
+  FIND_PACKAGE(Boost COMPONENTS python3 REQUIRED)
+ENDIF()
+
 INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIRS})
 
 # Binary simato
-SET(simato_HEADERS 
+SET(simato_HEADERS
   src/main_window.h
   src/map_viewer.h
   src/mission_viewer.h
@@ -30,7 +34,7 @@ QT5_WRAP_CPP(simato_HEADERS_MOC ${simato_HEADERS})
 
 
 ADD_EXECUTABLE(simato
-  src/colors.cpp 
+  src/colors.cpp
   src/main.cpp
   src/main_window.cpp
   src/map_viewer.cpp
@@ -59,7 +63,7 @@ IF(INSTALL_SCRIPTS)
   IF(NOT DEFINED PYTHON_INSTDIR)
     EXECUTE_PROCESS(COMMAND ${PYTHON_EXECUTABLE} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())" OUTPUT_VARIABLE PYTHON_INSTDIR OUTPUT_STRIP_TRAILING_WHITESPACE)
   ENDIF()
-    
+
   INSTALL(PROGRAMS scripts/actionGenerator.py DESTINATION bin RENAME actionGenerator)
   INSTALL(FILES scripts/pddl.py scripts/actionvisu.py DESTINATION ${PYTHON_INSTDIR})
 ENDIF()
