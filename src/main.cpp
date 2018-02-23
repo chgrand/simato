@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
   }
 
   window.move(QApplication::desktop()->screen()->rect().center() - window.rect().center());
-  window.resize(800, 500);
+  window.resize(900, 600);
   window.setWindowTitle("Simato");
   window.show();
   return app.exec();
